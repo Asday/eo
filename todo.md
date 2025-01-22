@@ -6,7 +6,6 @@
     * [ ] advertise IP in the database
     * [ ] wait for workers to connect
     * [ ] launch a login server
-    * [ ] handle connection handovers
   * [ ] cluster worker executable
     * [ ] connect to cluster executable
     * [ ] launch server instances as requested
@@ -27,6 +26,27 @@
       * [ ] physics simulation
       * [ ] handle timers
     * [ ] objects in space
+    * [ ] containers in space
+      * [ ] static containers
+        * [ ] jet cans
+        * [ ] wrecks
+        * [ ] passworded cans
+        * [ ] locked/unlocked cans (exploration)
+        * [ ] ship maintenance arrays
+        * [ ] the PoS deployables that store non-ship items, I forget the name
+      * [ ] removal of temporary cans
+      * [ ] movable containers
+        * [ ] fleet hangars
+        * [ ] whatever the ship bays in capitals and the orca are called
+      * [ ] jettisoning items
+      * [ ] moving items between containers
+        * [ ] interaction with inventory system, avoid item dupes for God's sake
+      * [ ] range checks
+      * [ ] ship maintenance array particulars
+        * [ ] launching ships
+        * [ ] stowing ships
+    * [ ] boarding ships
+    * [ ] ejecting
     * [ ] targeting
     * [ ] module activation and deactivation
       * [ ] full cycle only (most things)
@@ -55,6 +75,7 @@
         * [ ] hictor bubble
         * [ ] infinipoint
         * [ ] deployable bubble
+      * [ ] ship destruction
     * [ ] movement
       * [ ] subwarp
       * [ ] warp
@@ -93,12 +114,14 @@
     * [ ] standings system
     * [ ] fitting system
     * [ ] insurance system
-    * [ ] exploration system
+    * [ ] scanning system
       * [ ] calculate scan strength
+      * [ ] assign signatures to scannables
+      * [ ] filter results on probe type
     * [ ] hacking/archæology/anomaly system
       * [ ] spawn hacking/archæology/anomaly sites in systems that have space for them on a timer from a list of applicable sites for that system
     * [ ] hacking/archæology minigame system
-      * [ ] generate a grid
+      * [ ] generate a graph
       * [ ] hide the treasure
       * [ ] calculate click outcomes
       * [ ] handle item usage
@@ -138,6 +161,23 @@
       * [ ] timers for when the next skill level will happen
       * [x] NO unallocated SP, that shit is cuh-RINGE
         * [x] NO skill injectors
+    * [ ] oh yeah wallet system
+    * [ ] corporation / alliance system
+    * [ ] sovreignty system
+    * [ ] OH YEAH market system!  (Arguably the most important)
+      * [ ] sell orders in station with timeout
+      * [ ] buy orders in station with timeout and range
+    * [ ] contract system
+      * [ ] auction
+        * [ ] with buyout
+        * [ ] without buyout
+      * [ ] courier
+        * [ ] wrapping items
+        * [ ] collateral
+        * [ ] reward
+        * [ ] unwrapping
+      * [ ] item exchange
+    * [ ] trade system
 * [ ] client
   * [ ] connect to server
   * [ ] render interface
