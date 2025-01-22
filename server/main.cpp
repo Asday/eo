@@ -32,10 +32,16 @@ int main() {
       reinterpret_cast<sockaddr*>(&source),
       &sourceLength
     );
-    std::cout
-      << "received from "
-      << ntohl(source.sin_addr.s_addr)
-      << " data: ";
+    {
+      const auto a{static_cast<in_addr_t>(ntohl(source.sin_addr.s_addr))};
+      std::cout
+        << "received from "
+        << ((a & 0xFF000000) >> 24) << "."
+        << ((a & 0xFF0000) >> 16) << "."
+        << ((a & 0xFF00) >> 8) << "."
+        << (a & 0xFF)
+        << " data: ";
+    }
     for (auto j = 0; j < received; j++) {
       std::cout << d[j];
     }
