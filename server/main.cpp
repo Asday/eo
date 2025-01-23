@@ -24,14 +24,14 @@ int main() {
   while (i < 3) {
     sockaddr_in source{};
     socklen_t sourceLength{sizeof(source)};
-    uint8_t received = recvfrom(
+    ssize_t received{recvfrom(
       s,
       d,
       maxPacketSize,
       0,
       reinterpret_cast<sockaddr*>(&source),
       &sourceLength
-    );
+    )};
     {
       const auto a{static_cast<in_addr_t>(ntohl(source.sin_addr.s_addr))};
       std::cout
@@ -42,7 +42,7 @@ int main() {
         << (a & 0xFF)
         << " data: ";
     }
-    for (auto j = 0; j < received; j++) {
+    for (auto j{0}; j < received; j++) {
       std::cout << d[j];
     }
     std::cout << std::endl;
