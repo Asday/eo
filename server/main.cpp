@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-int main() {
+int serve() {
   auto s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (s <= 0) return -1;
   {
@@ -50,4 +50,48 @@ int main() {
     i++;
   }
   close(s);
+
+  return 0;
+}
+
+#include <libpq-fe.h>
+
+#include <iostream>
+#include <string>
+
+int main() {
+  PGconn* c{PQconnectdb("")};
+  if (PQstatus(c) != CONNECTION_OK) {
+    std::cout << PQerrorMessage(c) << std::endl;
+    PQfinish(c);
+    return -1;
+  }
+
+  {
+    PGresult* r{PQexec(
+      c,
+      "INSERT INTO server_cluster (ip, port, heartbeat) "
+      "VALUES ('127.0.0.1', 6562, NOW()::timestamp) "
+      "RETURNING id;"
+    )};
+    if (PQresultStatus(r) != PGRES_TUPLES_OK) {
+      std::cout << PQerrorMessage(c) << std::endl;
+    } else {
+      int32_t cols{PQnfields(r)};
+      for (uint8_t i{0}; i < cols; i++) {
+        std::cout << PQfname(r, i) << std::endl;
+      }
+      for (uint8_t i{0}; i < PQntuples(r); i++) {
+        for (uint8_t j{0}; j < cols; j++) {
+          std::cout << PQgetvalue(r, i, j);
+        }
+        std::cout << std::endl;
+      }
+    }
+    PQclear(r);
+  }
+
+  PQfinish(c);
+
+  return 0;
 }

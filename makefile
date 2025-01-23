@@ -9,14 +9,20 @@ CXXFLAGS = \
 	-pedantic-errors \
 	-g
 LDFLAGS =
+CXXFLAGS-server = -I$(shell pg_config --includedir)
+LDFLAGS-server = -L$(shell pg_config --libdir) -lpq
 
 .PHONY: all
 all: eo-server eo-client
 
-eo-server: server/main.cpp
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) server/main.cpp -o $@
+eo-server: server/main.cpp makefile
+	$(CXX) \
+		$(CXXFLAGS) $(CXXFLAGS-server) \
+		$(LDFLAGS-server) $(LDFLAGS) \
+		server/main.cpp \
+		-o $@
 
-eo-client: client/main.cpp
+eo-client: client/main.cpp makefile
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) client/main.cpp -o $@
 
 .PHONY: clean
