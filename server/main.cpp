@@ -35,7 +35,7 @@ int main() {
     {
       const auto a{static_cast<in_addr_t>(ntohl(source.sin_addr.s_addr))};
       std::cout
-        << "received from "
+        << "received " << received << " bytes from "
         << ((a & 0xFF000000) >> 24) << "."
         << ((a & 0xFF0000) >> 16) << "."
         << ((a & 0xFF00) >> 8) << "."
