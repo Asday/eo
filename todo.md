@@ -1,20 +1,37 @@
 # TODO
 
 * [ ] server cluster
-  * [ ] cluster executable
+  * [ ] cluster executable (one per cluster)
+    * [x] connect to database
+    * [ ] find launcher instance(s)
+    * [ ] launch a login server for own name
+    * [ ] launch a chat server
+    * [ ] launch persistent services
+    * [ ] present CLI
+      * [ ] handle cluster shutdown
+  * [ ] launcher executable (one per physical machine)
     * [ ] connect to database
     * [ ] advertise IP in the database
-    * [ ] wait for workers to connect
-    * [ ] launch a login server
-  * [ ] cluster worker executable
-    * [ ] connect to cluster executable
+      * [ ] ask postgres for IP `inet_client_addr()`
+      * [ ] record compute/memory stats
+      * [ ] store returned server id
+    * [ ] open a socket on private WAN
+    * [ ] wait for orders from cluster
     * [ ] launch server instances as requested
     * [ ] destroy server instances as requested
   * [ ] login server
+    * [ ] connect to database for cluster name
+    * [ ] advertise IP in the database
     * [ ] accept connections from clients
     * [ ] authenticate
-    * [ ] display character list and allow selection
+      * [ ] dude just plaintext the passwords for now I DO not care
+      * [ ] send a token back to the client to use in future requests
+      * [ ] don't even encrypt the packets lmao
+    * [ ] send character list
+    * [ ] listen for character selection
       * [ ] hand connection over to grid or station server
+        * [ ] build session
+        * [ ] launch a grid or station server if required
       * [ ] authorise connection to chat server
   * [ ] station server
     * [ ] accept connection handovers
