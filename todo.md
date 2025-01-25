@@ -2,7 +2,7 @@
 
 * [ ] server cluster
   * [ ] cluster executable (one per cluster)
-    * [x] connect to database
+    * [ ] connect to database
     * [ ] find launcher instance(s)
     * [ ] launch a login server for own name
     * [ ] launch a chat server
@@ -10,7 +10,7 @@
     * [ ] present CLI
       * [ ] handle cluster shutdown
   * [ ] launcher executable (one per physical machine)
-    * [ ] connect to database
+    * [x] connect to database
     * [ ] advertise IP in the database
       * [ ] ask postgres for IP `inet_client_addr()`
       * [ ] record compute/memory stats
