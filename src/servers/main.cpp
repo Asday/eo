@@ -59,6 +59,10 @@ int serve() {
 #include <iostream>
 #include <string>
 
+static std::string EO_IP;
+static std::string EO_PORT;
+static std::string SERVER_ID;
+
 int main() {
   PGconn* c{PQconnectdb("")};
   if (PQstatus(c) != CONNECTION_OK) {
@@ -77,16 +81,7 @@ int main() {
     if (PQresultStatus(r) != PGRES_TUPLES_OK) {
       std::cout << PQerrorMessage(c) << std::endl;
     } else {
-      int32_t cols{PQnfields(r)};
-      for (uint8_t i{0}; i < cols; i++) {
-        std::cout << PQfname(r, i) << std::endl;
-      }
-      for (uint8_t i{0}; i < PQntuples(r); i++) {
-        for (uint8_t j{0}; j < cols; j++) {
-          std::cout << PQgetvalue(r, i, j);
-        }
-        std::cout << std::endl;
-      }
+      SERVER_ID = PQgetvalue(r, 0, 0);
     }
     PQclear(r);
   }

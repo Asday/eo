@@ -1,3 +1,6 @@
-eo-client
-eo-server
-.envrc
+/.envrc
+
+/cluster
+/launcher
+/login
+/client
