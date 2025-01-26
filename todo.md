@@ -20,7 +20,9 @@
       * [ ] record compute/memory stats
       * [x] store returned server id
     * [ ] heartbeat to the database
-    * [ ] open a socket on private WAN
+    * [ ] serve internal requests
+      * [ ] open a socket
+      * [ ] on private WAN
     * [ ] wait for orders from cluster
     * [ ] launch server instances as requested
     * [ ] destroy server instances as requested
