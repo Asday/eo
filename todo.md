@@ -44,6 +44,7 @@
     * [ ] accept connection handovers
     * [ ] handle undocking
       * [ ] hand connection over to grid server
+    * [ ] trade
   * [ ] grid server
     * [ ] accept connection handovers
     * [ ] tick handling
@@ -104,6 +105,7 @@
       * [ ] subwarp
       * [ ] warp
         * [ ] hand connection over to other grid server if required
+        * [ ] ewarp
       * [ ] jump gate
       * [ ] jump bridge
       * [ ] tunnel (blops/titan)
@@ -126,37 +128,52 @@
     * [ ] shared commands (fleet warp)
     * [ ] interact with the chat server for fleet chat?
   * [ ] database server
-  * [ ] systems (how do these work and interact with servers?)
-    * [ ] inventory system
+  * [ ] realtime skill training service
+    * [ ] flag sessions for update
+    * [ ] notify connected client
+    * [ ] skill queue
+    * [ ] SP calculation
+    * [ ] timers for when the next skill level will happen
+    * [x] NO unallocated SP, that shit is cuh-RINGE
+      * [x] NO skill injectors
+  * [ ] OH YEAH market service!  (Arguably the most important)
+    * [ ] sell orders in station with timeout
+    * [ ] buy orders in station with timeout and range
+  * [ ] reinforce service
+  * [ ] signature spawning service
+  * [ ] industry service
+  * [ ] space junk cleanup service
+  * [ ] features
+    * [ ] inventory feature
       * [ ] active/inactive inventories (in DB or checked out by a server, updated in RAM, to be saved back later)
       * [ ] cargo scanner interaction
-    * [ ] session system
+    * [ ] session feature
       * [ ] cache of a player's current bonuses, wormhole polarity, probably other stuff
-    * [ ] industry system
+    * [ ] industry feature
       * [ ] in-station slots
       * [ ] PoS slots
-    * [ ] standings system
-    * [ ] fitting system
-    * [ ] insurance system
-    * [ ] scanning system
+    * [ ] standings feature
+    * [ ] fitting feature
+    * [ ] insurance feature
+    * [ ] scanning feature
       * [ ] calculate scan strength
       * [ ] assign signatures to scannables
       * [ ] filter results on probe type
-    * [ ] hacking/archæology/anomaly system
+    * [ ] hacking/archæology/anomaly feature
       * [ ] spawn hacking/archæology/anomaly sites in systems that have space for them on a timer from a list of applicable sites for that system
-    * [ ] hacking/archæology minigame system
+    * [ ] hacking/archæology minigame feature
       * [ ] generate a graph
       * [ ] hide the treasure
       * [ ] calculate click outcomes
       * [ ] handle item usage
-      * [ ] 3-slot inventory system (non-persistent? skip the DB)
+      * [ ] 3-slot inventory (non-persistent? skip the DB)
       * [ ] unlock/destroy cans on completion/failure
-    * [ ] wormhole network system
+    * [ ] wormhole network feature
       * [ ] spawn static wormholes for all w-space
       * [ ] keep timers for when wormholes will collapse
       * [ ] spawn non-static wormholes in systems that have space for them on a timer from a list of applicable wormholes for that system
       * [ ] mass calculation
-    * [ ] dungeon system
+    * [ ] dungeon feature
       * [ ] combat missions
       * [ ] cosmic anomalies
       * [ ] escalations
@@ -164,34 +181,23 @@
       * [ ] incursion encounters
       * [ ] cosmic sig asteroid/ice belts
       * [ ] wormhole encounters(?)
-    * [ ] incursion system
+    * [ ] incursion feature
       * [ ] spawn incursions
       * [ ] manage penalties
       * [ ] calculate influence change
       * [ ] spawn dungeons
       * [ ] destroy incursions on mom death
-    * [ ] mission system
-      * [ ] combat (interact with dungeon system)
+    * [ ] mission feature
+      * [ ] combat (interact with dungeon feature)
       * [ ] industry
       * [ ] mining
       * [ ] logistics
-    * [ ] new character creation system
-    * [ ] bounty system
-    * [ ] realtime skill training system
-      * [ ] flag sessions for update
-      * [ ] notify connected client
-      * [ ] skill queue
-      * [ ] SP calculation
-      * [ ] timers for when the next skill level will happen
-      * [x] NO unallocated SP, that shit is cuh-RINGE
-        * [x] NO skill injectors
-    * [ ] oh yeah wallet system
-    * [ ] corporation / alliance system
-    * [ ] sovreignty system
-    * [ ] OH YEAH market system!  (Arguably the most important)
-      * [ ] sell orders in station with timeout
-      * [ ] buy orders in station with timeout and range
-    * [ ] contract system
+    * [ ] new character creation feature
+    * [ ] bounty feature
+    * [ ] oh yeah wallet feature
+    * [ ] corporation / alliance feature
+    * [ ] sovreignty feature
+    * [ ] contract feature
       * [ ] auction
         * [ ] with buyout
         * [ ] without buyout
@@ -201,7 +207,6 @@
         * [ ] reward
         * [ ] unwrapping
       * [ ] item exchange
-    * [ ] trade system
 * [ ] client
   * [ ] connect to server
   * [ ] render interface

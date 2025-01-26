@@ -18,7 +18,7 @@ The CLI has the following commands:
 
 `shutdown <seconds>` - broadcast to connected game clients that a shutdown is imminent, then shut down after `seconds` seconds.
 
-### Persistent services
+### Services
 
 Stuff that runs on timers that should be able to time out without an active grid:
 
