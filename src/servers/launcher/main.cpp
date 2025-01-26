@@ -23,6 +23,8 @@
 
 using namespace std::literals;
 
+static constexpr const auto RETRY_DELAY{1s};
+
 void heartbeat() noexcept {}
 
 void serve() noexcept {}
@@ -55,12 +57,12 @@ class DB {
   }
   static const DB create() noexcept {
     while (true) {
-      auto db{DB::tryCreate()};
-      if (db.has_value()) {
-        return std::move(db).value();
+      auto maybeDB{DB::tryCreate()};
+      if (maybeDB.has_value()) {
+        return std::move(maybeDB).value();
       } else {
-        std::cout << db.error() << std::endl;
-        std::this_thread::sleep_for(1s);
+        std::cout << maybeDB.error() << std::endl;
+        std::this_thread::sleep_for(RETRY_DELAY);
       }
     }
   }
@@ -156,7 +158,7 @@ class LauncherRepository {
   public:
   LauncherRepository(const DB& db) noexcept: db(db) {}
 
-  const std::expected<UUID, std::string> tryRegister() const noexcept {
+  const std::expected<const UUID, std::string> tryRegister() const noexcept {
     const auto maybeQ{Query::tryCreate(
       const_cast<PGconn*>(db.getConn()),
       "INSERT INTO launcher (ip, port, heartbeat) "
@@ -171,6 +173,18 @@ class LauncherRepository {
 
     return uuid;
   }
+
+  const UUID register_() const noexcept {
+    while (true) {
+      auto maybeUUID{tryRegister()};
+      if (maybeUUID.has_value()) {
+        return std::move(maybeUUID).value();
+      } else {
+        std::cout << maybeUUID.error() << std::endl;
+        std::this_thread::sleep_for(RETRY_DELAY);
+      }
+    }
+  }
 };
 
 static UUID SERVER_ID{};
@@ -178,9 +192,7 @@ static UUID SERVER_ID{};
 int main() noexcept {
   const DB db{DB::create()};
   const LauncherRepository repo{db};
-  const auto serverID{repo.tryRegister()};
-  if (serverID.has_value()) SERVER_ID = std::move(serverID).value();
-  else std::cout << serverID.error() << std::endl;
+  SERVER_ID = repo.register_();
 
   std::cout << "I am " << SERVER_ID << std::endl;
 
