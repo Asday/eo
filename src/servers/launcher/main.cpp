@@ -22,9 +22,9 @@ void heartbeat() noexcept {}
 
 void serve() noexcept {}
 
-class DBConnectionIssue: public std::runtime_error {
+class DBConnectionError: public std::runtime_error {
   public:
-  DBConnectionIssue(const std::string& error) noexcept:
+  DBConnectionError(const std::string& error) noexcept:
     std::runtime_error(error) {}
 };
 
@@ -35,7 +35,7 @@ class DB {
     c([]{
       PGconn* c{PQconnectdb("")};
       if (PQstatus(c) != CONNECTION_OK) {
-        throw DBConnectionIssue(PQerrorMessage(c));
+        throw DBConnectionError(PQerrorMessage(c));
       }
       return c;
     }()) {}
@@ -44,7 +44,7 @@ class DB {
   static std::expected<DB, std::string> tryCreate() noexcept {
     try {
       return DB();
-    } catch (const DBConnectionIssue& exc) {
+    } catch (const DBConnectionError& exc) {
       return std::unexpected(exc.what());
     }
   }
