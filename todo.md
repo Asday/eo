@@ -1,5 +1,9 @@
 # TODO
 
+* [ ] miscellanery
+  * [ ] prepared statements
+  * [ ] DTLS
+  * [ ] sqlc (with custom template)
 * [ ] server cluster
   * [ ] cluster executable (one per cluster)
     * [ ] connect to database
@@ -200,3 +204,5 @@
   * [ ] render interface
   * [ ] play audio hoots
   * [ ] Windows
+* [ ] website
+  * [ ] payment (lmao)
