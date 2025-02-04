@@ -4,6 +4,7 @@
   * [ ] prepared statements
   * [ ] DTLS
   * [ ] sqlc (with custom template)
+  * [ ] VM based cluster test environment
 * [ ] server cluster
   * [ ] cluster executable (one per cluster)
     * [ ] connect to database
@@ -213,5 +214,6 @@
   * [ ] render interface
   * [ ] play audio hoots
   * [ ] Windows
+  * [ ] mac (maybe)
 * [ ] website
   * [ ] payment (lmao)
