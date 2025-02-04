@@ -15,17 +15,18 @@
       * [ ] handle cluster shutdown
   * [ ] launcher executable (one per physical machine)
     * [x] connect to database
-    * [ ] advertise IP in the database
+    * [ ] advertise self in the database
       * [x] ask postgres for IP `inet_client_addr()`
       * [ ] record compute/memory stats
       * [x] store returned server id
-    * [ ] heartbeat to the database
+    * [x] heartbeat to the database
     * [ ] serve internal requests
-      * [ ] open a socket
+      * [x] open a socket
       * [ ] on private WAN
     * [ ] wait for orders from cluster
     * [ ] launch server instances as requested
     * [ ] destroy server instances as requested
+    * [ ] clean up heartbeat on shutdown
   * [ ] login server
     * [ ] connect to database for cluster name
     * [ ] advertise IP in the database
