@@ -26,7 +26,7 @@
     * [ ] wait for orders from cluster
     * [ ] launch server instances as requested
     * [ ] destroy server instances as requested
-    * [ ] clean up heartbeat on shutdown
+    * [x] clean up heartbeat on shutdown
   * [ ] login server
     * [ ] connect to database for cluster name
     * [ ] advertise IP in the database

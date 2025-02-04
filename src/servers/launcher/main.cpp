@@ -214,6 +214,30 @@ class LauncherRepository {
 
     return {};
   }
+
+  const std::expected<void, std::string> tryUnregister() const noexcept {
+    const auto maybeQ{Query::tryCreate(
+      const_cast<PGconn*>(db.getConn()),
+      (std::stringstream()
+        << "DELETE FROM launcher "
+        << "WHERE id = '" << SERVER_ID << "';"
+      ).str().c_str()
+    )};
+
+    if (!maybeQ.has_value()) return std::unexpected(maybeQ.error());
+
+    return {};
+  }
+
+  void unregister() const noexcept {
+    while (true) {
+      auto maybeVoid{tryUnregister()};
+      if (maybeVoid.has_value()) return;
+
+      std::cout << maybeVoid.error() << std::endl;
+      std::this_thread::sleep_for(RETRY_DELAY);
+    }
+  }
 };
 
 class SocketCreateError: public std::runtime_error {
@@ -440,26 +464,7 @@ void listen_(
   }
 }
 
-int main() noexcept {
-  const BoundSocket bs{[]{
-    // TODO: private WAN address here?  Honestly might want to ask the
-    // DB for it...
-    auto maybeBS{BoundSocket::tryCreate(INADDR_ANY, PORT)};
-    if (!maybeBS.has_value()) {
-      std::cout
-        << "fatal: couldn't create socket: "
-        << std::visit([](auto&& arg){ return arg.what(); }, maybeBS.error())
-        << std::endl;
-      std::terminate();
-    }
-
-    return std::move(maybeBS).value();
-  }()};
-
-  const DB db{DB::create()};
-  const LauncherRepository repo{db};
-  SERVER_ID = repo.register_();
-
+void run(const BoundSocket& bs, const LauncherRepository& repo) noexcept {
   std::cout << "Starting server as ID " << SERVER_ID << std::endl;
 
   std::cout << "Starting heart...";
@@ -481,4 +486,29 @@ int main() noexcept {
   }
 
   std::cout << "Caught SIG{INT,TERM}, shutting down..." << std::endl;
+}
+
+int main() {
+  const BoundSocket bs{[]{
+    // TODO: private WAN address here?  Honestly might want to ask the
+    // DB for it...
+    auto maybeBS{BoundSocket::tryCreate(INADDR_ANY, PORT)};
+    if (!maybeBS.has_value()) {
+      std::cout
+        << "fatal: couldn't create socket: "
+        << std::visit([](auto&& arg){ return arg.what(); }, maybeBS.error())
+        << std::endl;
+      std::terminate();
+    }
+
+    return std::move(maybeBS).value();
+  }()};
+
+  const DB db{DB::create()};
+  const LauncherRepository repo{db};
+  SERVER_ID = repo.register_();
+
+  run(bs, repo);
+
+  repo.unregister();
 }
