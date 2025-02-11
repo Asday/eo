@@ -74,7 +74,7 @@ clean-bin:
 
 .PHONY: clean-vm-network-bridge
 clean-vm-network-bridge:
-	sudo ip link delete eo-vm-bridge type bridge
+	sudo ip link delete eo-vm-bridge type bridge || echo "no bridge"
 
 .PHONY: clean-vm-network-qemu-conf
 clean-vm-network-qemu-conf:
