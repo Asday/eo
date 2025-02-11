@@ -3,6 +3,9 @@
 * [ ] miscellanery
   * [ ] prepared statements
   * [ ] DTLS
+  * [ ] packet error detection/correction
+    * [x] caboose for incomplete message detection
+    * [ ] checksum dispersed through the packet for more generic detection
   * [ ] sqlc (with custom template)
   * [ ] VM based cluster test environment
     * [ ] get something working
@@ -27,7 +30,7 @@
       * [ ] serve internal requests
         * [x] open a socket
         * [ ] on private WAN
-      * [ ] wait for orders from cluster
+      * [x] wait for orders from cluster
       * [ ] launch server instances as requested
       * [ ] destroy server instances as requested
       * [x] clean up heartbeat on shutdown
