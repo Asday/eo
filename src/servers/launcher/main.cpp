@@ -14,8 +14,10 @@
 #include <array>
 #include <cerrno>
 #include <chrono>
+#include <cstdint>
 #include <cstring>
 #include <expected>
+#include <iomanip>
 #include <iostream>
 #include <netinet/in.h>
 #include <ranges>
@@ -31,21 +33,49 @@
 
 using namespace std::literals;
 using notManyMilliseconds = std::chrono::duration<int, std::milli>;
+using PacketBuffer = std::array<uint8_t, 65536>;
 
 static constexpr const auto RETRY_DELAY{1s};
 static constexpr const uint16_t PORT{32232};
-
+static constexpr const uint8_t CABOOSE{108};
 
 struct UUID {
-  std::array<unsigned char, 16> uuid;
+  std::array<const uint8_t, 16> uuid;
 
-  UUID() {}
-  UUID(const char* v) : uuid([v]{
-    std::array<unsigned char, 16> uuid{};
-    for (size_t i{0}; i < 16; i++) uuid[i] = static_cast<unsigned char>(v[i]);
+  UUID() : uuid(std::array<const uint8_t, 16>{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  }) {}
+  UUID(std::ranges::sized_range auto&& uuid) :
+    uuid([&uuid]{
+      static_assert(uuid.size() == 16, "UUIDs must be 16 bytes long");
 
-    return uuid;
-  }()) {}
+      return std::array<const uint8_t, 16>{
+        uuid[0],
+        uuid[1],
+        uuid[2],
+        uuid[3],
+        uuid[4],
+        uuid[5],
+        uuid[6],
+        uuid[7],
+        uuid[8],
+        uuid[9],
+        uuid[10],
+        uuid[11],
+        uuid[12],
+        uuid[13],
+        uuid[14],
+        uuid[15],
+      };
+    }()) {}
+  static UUID unsafeCreate(const char* v) {
+    // No bounds checking, the caller is responsible for providing the
+    // right length array.
+    std::array<uint8_t, 16> uuid{};
+    for (size_t i{0}; i < 16; i++) uuid[i] = static_cast<uint8_t>(v[i]);
+
+    return UUID{uuid};
+  }
 
   friend std::ostream& operator<<(std::ostream& os, const UUID& uuid) {
     auto flags = os.flags();
@@ -60,7 +90,11 @@ struct UUID {
   }
 };
 
-static UUID SERVER_ID{};
+struct Context {
+  const UUID* SERVER_ID;
+};
+
+static Context ctx{};
 
 class DBConnectionError: public std::runtime_error {
   public:
@@ -184,10 +218,10 @@ class LauncherRepository {
 
     if (!maybeQ.has_value()) return std::unexpected(maybeQ.error());
 
-    UUID uuid;
+    char* uuid;
     maybeQ.value().fetchScalar(uuid);
 
-    return uuid;
+    return UUID::unsafeCreate(uuid);
   }
 
   const UUID register_() const noexcept {
@@ -206,7 +240,7 @@ class LauncherRepository {
       (std::stringstream()
         << "UPDATE launcher "
         << "SET heartbeat = NOW()::timestamp "
-        << "WHERE id = '" << SERVER_ID << "';"
+        << "WHERE id = '" << *ctx.SERVER_ID << "';"
       ).str().c_str()
     )};
 
@@ -220,7 +254,7 @@ class LauncherRepository {
       const_cast<PGconn*>(db.getConn()),
       (std::stringstream()
         << "DELETE FROM launcher "
-        << "WHERE id = '" << SERVER_ID << "';"
+        << "WHERE id = '" << *ctx.SERVER_ID << "';"
       ).str().c_str()
     )};
 
@@ -389,7 +423,7 @@ class BoundSocket {
   }
 
   std::expected<bool, std::string> receive(
-    std::array<unsigned char, 65536>& buf,
+    PacketBuffer& buf,
     ssize_t& receivedBytes,
     uint32_t& from,
     const std::optional<notManyMilliseconds>& timeout
@@ -418,6 +452,177 @@ class BoundSocket {
   }
 };
 
+enum class MessageType : uint8_t {
+  launchInstance = 0,
+  shutdownInstance = 1,
+
+  LAST = shutdownInstance
+};
+
+std::ostream& operator<<(std::ostream& os, const MessageType& mt) {
+  switch (mt) {
+    using enum MessageType;
+    case launchInstance: os << "launchInstance"; break;
+    case shutdownInstance: os << "shutdownInstance"; break;
+  }
+
+  return os;
+}
+
+template <typename T, typename... Ts>
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::variant<T, Ts...>& e
+) {
+    std::visit([&os](auto& v){ os << v; }, e);
+
+    return os;
+}
+
+enum class InstanceType : uint8_t {
+  login = 0,
+  station = 1,
+  grid = 2,
+  chat = 3,
+  fleet = 4,
+  skill = 5,
+  market = 6,
+  reinforce = 7,
+  signature = 8,
+  industry = 9,
+  junk = 10,
+  insurance = 11,
+  incursion = 12,
+  contract = 13,
+  bounty = 14,
+  cleanup = 15,
+  planetaryInteraction = 16,
+
+  LAST = planetaryInteraction,
+};
+
+std::ostream& operator<<(std::ostream& os, const InstanceType& it) {
+  switch (it) {
+    using enum InstanceType;
+    case login: os << "login"; break;
+    case station: os << "station"; break;
+    case grid: os << "grid"; break;
+    case chat: os << "chat"; break;
+    case fleet: os << "fleet"; break;
+    case skill: os << "skill"; break;
+    case market: os << "market"; break;
+    case reinforce: os << "reinforce"; break;
+    case signature: os << "signature"; break;
+    case industry: os << "industry"; break;
+    case junk: os << "junk"; break;
+    case insurance: os << "insurance"; break;
+    case incursion: os << "incursion"; break;
+    case contract: os << "contract"; break;
+    case bounty: os << "bounty"; break;
+    case cleanup: os << "cleanup"; break;
+    case planetaryInteraction: os << "planetaryInteraction"; break;
+  }
+
+  return os;
+}
+
+struct LaunchInstanceMessage0 {
+  static constexpr size_t itOffset{2};
+  InstanceType it;
+  static constexpr size_t clusterIDOffset{itOffset + sizeof(it)};
+  uint8_t clusterID;
+
+  static std::expected<LaunchInstanceMessage0, std::string> tryCreate(
+    const PacketBuffer& buf
+  ) {
+    if (
+      buf[LaunchInstanceMessage0::itOffset]
+      > std::to_underlying(InstanceType::LAST)) {
+      return std::unexpected("invalid instance type");
+    }
+    if (buf[clusterIDOffset + sizeof(clusterID)] != CABOOSE) {
+      return std::unexpected("invalid caboose");
+    }
+
+    return LaunchInstanceMessage0(buf);
+  }
+
+  friend std::ostream& operator<<(
+    std::ostream& os,
+    const LaunchInstanceMessage0& lim
+  ) {
+    os
+      << "LaunchInstanceMessage0,"
+      << " it=" << lim.it
+      << " clusterID=" << lim.clusterID
+    ;
+
+    return os;
+  }
+
+  private:
+  LaunchInstanceMessage0(const PacketBuffer& buf) :
+    it(InstanceType{buf[itOffset]}),
+    clusterID(buf[clusterIDOffset]) {}
+};
+
+struct ShutdownInstanceMessage0 {
+  static constexpr size_t idOffset{2};
+  UUID id;
+
+  static std::expected<ShutdownInstanceMessage0, std::string> tryCreate(
+    const PacketBuffer& buf
+  ) {
+    if (buf[ShutdownInstanceMessage0::idOffset + sizeof(id)] != CABOOSE) {
+      return std::unexpected("invalid caboose");
+    }
+
+    return ShutdownInstanceMessage0(buf);
+  }
+
+  friend std::ostream& operator<<(
+    std::ostream& os,
+    const ShutdownInstanceMessage0& sim
+  ) {
+    os
+      << "ShutdownInstanceMessage0, "
+      << "id=" << sim.id
+    ;
+
+    return os;
+  }
+
+  private:
+  ShutdownInstanceMessage0(const PacketBuffer& buf) :
+    id(std::span(buf).subspan<
+      ShutdownInstanceMessage0::idOffset,
+      sizeof(id)
+    >()) {}
+};
+
+using Message = std::variant<
+  LaunchInstanceMessage0,
+  ShutdownInstanceMessage0
+>;
+
+std::expected<Message, std::string> parsePacket(
+  const PacketBuffer& buf
+) noexcept {
+  if (buf[0] != 0) return std::unexpected("invalid message version");
+  if (buf[1] > std::to_underlying(MessageType::LAST)) {
+    return std::unexpected("invalid message type");
+  }
+  const MessageType mt{buf[1]};
+  switch (mt) {
+    case MessageType::launchInstance:
+      return LaunchInstanceMessage0::tryCreate(buf);
+    case MessageType::shutdownInstance:
+      return ShutdownInstanceMessage0::tryCreate(buf);
+  }
+
+  return std::unexpected("error: stop using `static_cast()`");
+}
+
 void heartbeat(std::stop_token st, const LauncherRepository& repo) noexcept {
   while (!st.stop_requested()) {
     const auto& maybeVoid{repo.tryHeartbeat()};
@@ -426,7 +631,8 @@ void heartbeat(std::stop_token st, const LauncherRepository& repo) noexcept {
         << maybeVoid.has_value()
         << "error: heart skipped a beat: "
         << maybeVoid.error()
-        << std::endl;
+        << std::endl
+      ;
     };
 
     std::this_thread::sleep_for(1s);
@@ -437,7 +643,7 @@ void listen_(
   std::stop_token st,
   const BoundSocket& bs
 ) noexcept {
-  std::array<unsigned char, 65536> buf{};
+  PacketBuffer buf{};
   ssize_t receivedBytes{};
   uint32_t from{};
   std::expected<bool, std::string> receiveResult;
@@ -456,16 +662,24 @@ void listen_(
       << ((from & 0xFF0000) >> 16) << "."
       << ((from & 0xFF00) >> 8) << "."
       << (from & 0xFF)
-      << " data: ";
+      << " data: "
+    ;
 
     for (uint16_t i{0}; i < receivedBytes; i++) std::cout << buf[i];
 
     std::cout << std::endl;
+
+    const auto maybeM{parsePacket(buf)};
+    if (maybeM.has_value()) {
+      std::cout << maybeM.value() << std::endl;
+    } else {
+      std::cout << "failed to parse packet: " << maybeM.error() << std::endl;
+    }
   }
 }
 
 void run(const BoundSocket& bs, const LauncherRepository& repo) noexcept {
-  std::cout << "Starting server as ID " << SERVER_ID << std::endl;
+  std::cout << "Starting server as ID " << *ctx.SERVER_ID << std::endl;
 
   std::cout << "Starting heart...";
   std::jthread heartbeat_worker{heartbeat, std::ref(repo)};
@@ -497,7 +711,8 @@ int main() {
       std::cout
         << "fatal: couldn't create socket: "
         << std::visit([](auto&& arg){ return arg.what(); }, maybeBS.error())
-        << std::endl;
+        << std::endl
+      ;
       std::terminate();
     }
 
@@ -506,7 +721,8 @@ int main() {
 
   const DB db{DB::create()};
   const LauncherRepository repo{db};
-  SERVER_ID = repo.register_();
+  const UUID sid = repo.register_();
+  ctx.SERVER_ID = &sid;
 
   run(bs, repo);
 
