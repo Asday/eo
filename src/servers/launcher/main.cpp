@@ -669,6 +669,20 @@ void listen_(
 
     std::cout << std::endl;
 
+    // BUG:  Packet buffer is (intentionally) not cleared between
+    // packets, and length is (unintentionally) not provided to the
+    // parser, so the tails of old long packets hang around, leading to
+    // future incomplete messages that coincidentally make syntactic
+    // sense when combined with a stale tail will (incorrectly) cause a
+    // message to be created here.
+    //
+    // Refactor so some view into the packet buffer is being passed
+    // around instead, maybe a struct that holds the buffer, received
+    // byte count, and from address, and has a method to get just the
+    // data.  Maybe use the opportunity to pull out the caboose checking
+    // (as that's an anti-data corruption measure).  `.tryGetData()` or
+    // similar.  That'll make it easier to add on extra packet error
+    // detection/correction.
     const auto maybeM{parsePacket(buf)};
     if (maybeM.has_value()) {
       std::cout << maybeM.value() << std::endl;
