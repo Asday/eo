@@ -196,7 +196,7 @@
       * [ ] determine unused stations/grids/chat servers
       * [ ] tell the launcher to nupe them
     * [ ] planetary interaction server
-  * [ ] features (code reused across instances
+  * [ ] features (code reused across instances)
     * [ ] inventory feature
       * [ ] active/inactive inventories (in DB or checked out by a server, updated in RAM, to be saved back later)
       * [ ] cargo scanner interaction
