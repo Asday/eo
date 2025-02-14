@@ -640,22 +640,6 @@ std::expected<Message, std::string> parsePacket(
   return std::unexpected("error: stop using `static_cast()`");
 }
 
-void heartbeat(std::stop_token st, const LauncherRepository& repo) noexcept {
-  while (!st.stop_requested()) {
-    const auto& maybeVoid{repo.tryHeartbeat()};
-    if (!maybeVoid.has_value()) {
-      std::cout
-        << maybeVoid.has_value()
-        << "error: heart skipped a beat: "
-        << maybeVoid.error()
-        << std::endl
-      ;
-    };
-
-    std::this_thread::sleep_for(1s);
-  }
-}
-
 struct MessageEnactor {
   void operator()(const LaunchInstanceMessage0& m) const noexcept {
     const auto maybeE{executable(m.it)};
@@ -735,7 +719,24 @@ struct MessageEnactor {
     ;
   }
 };
+
 static constexpr MessageEnactor messageEnactor{};
+
+void heartbeat(std::stop_token st, const LauncherRepository& repo) noexcept {
+  while (!st.stop_requested()) {
+    const auto& maybeVoid{repo.tryHeartbeat()};
+    if (!maybeVoid.has_value()) {
+      std::cout
+        << maybeVoid.has_value()
+        << "error: heart skipped a beat: "
+        << maybeVoid.error()
+        << std::endl
+      ;
+    };
+
+    std::this_thread::sleep_for(1s);
+  }
+}
 
 void listen_(
   std::stop_token st,
