@@ -15,6 +15,7 @@
 #include <sstream>
 #include <string>
 #include <sys/epoll.h>
+#include <sys/wait.h>
 #include <thread>
 #include <unistd.h>
 #include <utility>
@@ -515,6 +516,33 @@ std::ostream& operator<<(std::ostream& os, const InstanceType& it) {
   return os;
 }
 
+constexpr std::expected<std::string, std::string> executable(
+  const InstanceType& it
+) {
+  switch (it) {
+    using enum InstanceType;
+    case login: return "./login";
+    case station: return "./station";
+    case grid: return "./grid";
+    case chat: return "./chat";
+    case fleet: return "./fleet";
+    case skill: return "./skill";
+    case market: return "./market";
+    case reinforce: return "./reinforce";
+    case signature: return "./signature";
+    case industry: return "./industry";
+    case junk: return "./junk";
+    case insurance: return "./insurance";
+    case incursion: return "./incursion";
+    case contract: return "./contract";
+    case bounty: return "./bounty";
+    case cleanup: return "./cleanup";
+    case planetaryInteraction: return "./planetaryInteraction";
+  }
+
+  return std::unexpected("error: stop using `static_cast()`");
+}
+
 struct LaunchInstanceMessage0 {
   static constexpr size_t itOffset{2};
   InstanceType it;
@@ -628,6 +656,87 @@ void heartbeat(std::stop_token st, const LauncherRepository& repo) noexcept {
   }
 }
 
+struct MessageEnactor {
+  void operator()(const LaunchInstanceMessage0& m) const noexcept {
+    const auto maybeE{executable(m.it)};
+    if (!maybeE.has_value()) {
+      std::cout << maybeE.error() << std::endl;
+
+      return;
+    }
+
+    const std::string e{std::move(maybeE).value()};
+    const pid_t p1{fork()};
+    if (p1 == -1) {
+      std::cout
+        << "error: couldn't launch instance "
+        << m
+        << ": "
+        << std::strerror(errno)
+        << std::endl
+      ;
+
+      return;
+    }
+    else if (p1 != 0) waitpid(p1, nullptr, WUNTRACED);
+    else {
+      const pid_t s{setsid()};
+      if (s == -1) {
+        std::cout
+          << "error: couldn't launch instance "
+          << m
+          << ": "
+          << std::strerror(errno)
+          << std::endl
+        ;
+
+        exit(errno);
+      }
+      const pid_t p2{fork()};
+      if (p2 == -1) {
+        std::cout
+          << "error: couldn't launch instance "
+          << m
+          << ": "
+          << std::strerror(errno)
+          << std::endl
+        ;
+
+        exit(errno);
+      }
+      else if (p2 != 0) exit(0);
+      else {
+        const char* argv[]{
+          e.c_str(),
+          (std::stringstream() << +m.clusterID).str().c_str(),
+          NULL
+        };
+
+        (void)execvp(argv[0], const_cast<char**>(argv));
+
+        std::cout
+          << "error: couldn't launch instance "
+          << m
+          << ": "
+          << std::strerror(errno)
+          << std::endl
+        ;
+
+        exit(errno);
+      }
+    }
+  }
+
+  void operator()(const ShutdownInstanceMessage0& m) const noexcept {
+    std::cout
+      << "error: enacting unimplemented message: "
+      << m
+      << std::endl
+    ;
+  }
+};
+static constexpr MessageEnactor messageEnactor{};
+
 void listen_(
   std::stop_token st,
   const BoundSocket& bs
@@ -673,11 +782,15 @@ void listen_(
     // similar.  That'll make it easier to add on extra packet error
     // detection/correction.
     const auto maybeM{parsePacket(buf)};
-    if (maybeM.has_value()) {
-      std::cout << maybeM.value() << std::endl;
-    } else {
+    if (!maybeM.has_value()) {
       std::cout << "failed to parse packet: " << maybeM.error() << std::endl;
+      continue;
     }
+
+    const Message m{std::move(maybeM).value()};
+    std::cout << m << std::endl;
+
+    std::visit(messageEnactor, m);
   }
 }
 
