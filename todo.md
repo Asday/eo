@@ -153,7 +153,6 @@
       * [ ] broadcasts
       * [ ] shared commands (fleet warp)
       * [ ] interact with the chat server for fleet chat?
-    * [ ] database server
     * [ ] realtime skill training service
       * [ ] flag sessions for update
       * [ ] notify connected client
