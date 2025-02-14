@@ -67,7 +67,7 @@ struct UUID {
   }
 
   friend std::ostream& operator<<(std::ostream& os, const UUID& uuid) {
-    auto flags = os.flags();
+    auto flags{os.flags()};
     os << std::hex;
     for (const auto& [i, c] : uuid.uuid | std::views::enumerate) {
       os << std::setw(2) << std::setfill('0') << +c;
