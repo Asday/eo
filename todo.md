@@ -10,6 +10,21 @@
   * [ ] VM based cluster test environment
     * [ ] get something working
     * [ ] look into cloud-init later
+  * [ ] logging stuff
+    * [ ] enable logging calls based on levels
+    * [ ] automatically format messages with their level as a prefix
+    * [ ] prefix with executable name, too - looks like terminal output is gonna get mixed
+  * [ ] refactor to multiple files
+    * [ ] build system (nob style?  `#if 0 /*` stuff like in `cpp-examples`?  MAKE!?)
+  * [ ] network testing
+    * [ ] latency injection
+      * [ ] constant
+      * [ ] spikes
+    * [ ] error injection
+      * [ ] incomplete messages
+      * [ ] bit flips
+      * [ ] consecutive bit corruption
+    * [ ] hangups
 * [ ] server cluster
   * [ ] instances (long lived stuff)
     * [ ] cluster executable (one per cluster)
@@ -31,9 +46,12 @@
         * [x] open a socket
         * [ ] on private WAN
       * [x] wait for orders from cluster
-      * [ ] launch server instances as requested
+      * [x] launch server instances as requested
       * [ ] destroy server instances as requested
       * [x] clean up heartbeat on shutdown
+      * [ ] fix stale tail bug
+      * [ ] swap visit lambda to cout a variant for a straight cout if poss
+      * [ ] refactor to multiple files
     * [ ] login server
       * [ ] connect to database for cluster name
       * [ ] advertise IP in the database
