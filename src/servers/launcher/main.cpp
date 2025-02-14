@@ -543,7 +543,7 @@ struct LaunchInstanceMessage0 {
     os
       << "LaunchInstanceMessage0,"
       << " it=" << lim.it
-      << " clusterID=" << lim.clusterID
+      << " clusterID=" << +lim.clusterID
     ;
 
     return os;
