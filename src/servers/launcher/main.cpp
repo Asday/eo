@@ -1,14 +1,3 @@
-// * [x] connect to database
-// * [ ] advertise IP in the database
-//   * [x] ask postgres for IP `inet_client_addr()`
-//   * [ ] record compute/memory stats
-//   * [x] store returned server id
-// * [ ] heartbeat to the database
-// * [ ] open a socket on private WAN
-// * [ ] wait for orders from cluster
-// * [ ] launch server instances as requested
-// * [ ] destroy server instances as requested
-
 #include <libpq-fe.h>
 
 #include <array>
