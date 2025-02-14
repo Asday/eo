@@ -713,6 +713,8 @@ int main() {
     if (!maybeBS.has_value()) {
       std::cout
         << "fatal: couldn't create socket: "
+        // TODO: can this be swapped for `<< maybeBS.error()` now an
+        // overload for `std::variant`s exists?
         << std::visit([](auto&& arg){ return arg.what(); }, maybeBS.error())
         << std::endl
       ;
