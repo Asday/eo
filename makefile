@@ -1,23 +1,39 @@
-CXX = gcc
-CXXFLAGS = \
-	-std=c++23 \
-	-O3 \
-	-Wall \
-	-Wextra \
-	-Werror \
-	-Wsign-conversion \
-	-pedantic-errors \
-	-g
+-include build/config.make
+-include build/config-server.make
 
 .PHONY: all
-all: eo-server eo-client
+all: cluster launcher login client
 
-eo-server:
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) server/main.cpp -o $@
+cluster: src/servers/cluster/main.cpp
+cluster: build/config.make
+cluster: build/config-server.make
+	$(CXX) \
+		$(CXXFLAGS-server) $(CXXFLAGS) \
+		$(LDFLAGS-server) $(LDFLAGS) \
+		src/servers/cluster/main.cpp \
+		-o $@
 
-eo-client:
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) client/main.cpp -o $@
+launcher: src/servers/launcher/main.cpp
+launcher: build/config.make
+launcher: build/config-server.make
+	$(CXX) \
+		$(CXXFLAGS-server) $(CXXFLAGS) \
+		$(LDFLAGS-server) $(LDFLAGS) \
+		src/servers/launcher/main.cpp \
+		-o $@
+
+login: src/servers/login/main.cpp
+login: build/config.make
+login: build/config-server.make
+	$(CXX) \
+		$(CXXFLAGS-server) $(CXXFLAGS) \
+		$(LDFLAGS-server) $(LDFLAGS) \
+		src/servers/login/main.cpp \
+		-o $@
+
+client: src/client/main.cpp build/config.make
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) src/client/main.cpp -o $@
 
 .PHONY: clean
 clean:
-	rm eo-server eo-client
+	rm -f cluster launcher login client
