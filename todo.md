@@ -52,6 +52,8 @@
       * [ ] fix stale tail bug
       * [ ] swap visit lambda to cout a variant for a straight cout if poss
       * [ ] refactor to multiple files
+      * [ ] swallow the `^C` in the terminal
+      * [ ] spawned processes appear to share stdout, fix that
     * [ ] login server
       * [ ] connect to database for cluster name
       * [ ] advertise IP in the database
