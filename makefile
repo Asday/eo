@@ -4,6 +4,12 @@
 .PHONY: all
 all: cluster launcher login client
 
+src/servers/sql/repo.cpp: src/servers/sql/repo.cpp.tmpl
+src/servers/sql/repo.cpp: src/servers/sql/repo.sql
+src/servers/sql/repo.cpp: src/servers/sql/sqlc.yml
+	cd src/servers/sql && \
+		sqlc generate
+
 cluster: src/servers/cluster/main.cpp
 cluster: build/config.make
 cluster: build/config-server.make

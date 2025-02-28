@@ -1,0 +1,18 @@
+version: 2
+plugins:
+  - name: sqlc-gen-from-template
+    process:
+      cmd: sqlc-gen-from-template
+sql:
+  - engine: postgresql
+    queries: repo.sql
+    schema: ddl.sql
+    database:
+      uri: "postgres://${PGUSER}@${PGHOST}:${PGPORT}/${PGDATABASE}"
+    strict_function_checks: true
+    codegen:
+      - out: .
+        plugin: sqlc-gen-from-template
+        options:
+          template: repo.cpp.tmpl
+          filename: repo.cpp

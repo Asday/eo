@@ -1,0 +1,26 @@
+namespace repo {
+  {{- range .Queries -}}
+  {{- range .Comments }}
+  //{{ . }}{{- end }}
+  const auto sql{"{{ .Text }}"};
+  PGresult* r{PQexecParams(
+    conn,
+    sql,
+    0,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    1
+  )};
+  const ExecStatusType s{PQresultStatus(r)};
+  {{- if or (eq .Cmd ":many") (eq .Cmd ":one") }}
+  if (s != PGRES_TUPLES_OK)
+  {{- else }}
+  if (s != PGRES_COMMAND_OK)
+  {{- end -}}
+  {
+    return std::unexpected(PQerrorMessage(conn));
+  }
+  {{- end }}
+}
