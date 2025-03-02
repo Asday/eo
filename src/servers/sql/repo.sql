@@ -17,3 +17,8 @@ WHERE id = sqlc.arg(id)
 DELETE FROM launcher
 WHERE id = sqlc.arg(id)
 ;
+
+-- name: launchers :many
+SELECT *
+FROM launcher
+;
