@@ -1,0 +1,88 @@
+{{- define "CPPType" -}}
+{{- $cppType := .Name -}}
+{{- if eq $cppType "uuid" }}{{ $cppType = "UUID" }}
+{{- else if eq $cppType "integer" }}{{ $cppType = "std::int8_t" }}
+{{- end -}}
+{{- $cppType -}}
+{{- end -}}
+
+{{- define "CPPSafeName" -}}
+{{- $name := . -}}
+{{- if eq $name "register" }}{{ $name = "register_" }}
+{{- end -}}
+{{- $name -}}
+{{- end -}}
+
+{{- define "CPPColumnsStructName" -}}
+{{ . }}Result
+{{- end -}}
+
+{{- define "CPPColumnsStruct" -}}
+  struct {{ template "CPPColumnsStructName" .Name }} {
+    {{- range .Columns }}
+    {{ template "CPPType" .Type }} {{ .Name }};
+    {{- end }}
+  }
+{{- end -}}
+
+#include <libpq-fe.h>
+
+#include <charconv>
+
+namespace repo {
+  {{- range .Queries }}
+  {{ template "CPPColumnsStruct" Dict "Name" .Name "Columns" .Columns }}
+  {{- range .Comments }}
+  //{{ . }}{{- end }}
+  std::expected<
+    {{- if (eq .Cmd ":one") -}}
+      {{ template "CPPColumnsStructName" .Name }}
+    {{- else if (eq .Cmd ":many") -}}
+      std::vector<{{ template "CPPColumnsStructName" .Name }}>
+    {{- else -}}
+      void
+    {{- end -}}
+  , std::string_view> {{ template "CPPSafeName" .Name }}(
+    {{- range .Params }}
+    const {{ template "CPPType" .Column.Type }} {{ .Column.Name }},
+    {{- end }}
+  ) noexcept {
+    static constexpr char* sql{
+      {{- range Split .Text "\n" }}
+      "{{ . }} "
+      {{- end }}
+    };
+    constexpr std::size_t nParams{
+      {{- len .Params -}}
+    };
+    {{- if eq (len .Params) 0 }}
+    const char* paramValues[]{nullptr};
+    {{- else }}
+    const char* paramValues[nParams]{
+      {{- range .Params }}
+      {{ .Column.Name }},
+      {{- end }}
+    };
+    {{- end }}
+    PGresult* r{PQexecParams(
+      conn,
+      sql,
+      nParams,
+      nullptr,  // `paramTypes[]` - `nullptr` means infer from context.
+      paramValues,
+      nullptr,  // `paramLengths[]` - ignored for text format params.
+      nullptr,  // `paramFormats[]` - `nullptr` means all text.
+      1
+    )};
+    const ExecStatusType s{PQresultStatus(r)};
+    {{- if or (eq .Cmd ":many") (eq .Cmd ":one") }}
+    if (s != PGRES_TUPLES_OK)
+    {{- else }}
+    if (s != PGRES_COMMAND_OK)
+    {{- end -}}
+    {
+      return std::unexpected(PQerrorMessage(conn));
+    }
+  }
+  {{- end }}
+}
