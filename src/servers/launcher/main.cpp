@@ -516,7 +516,7 @@ std::ostream& operator<<(std::ostream& os, const InstanceType& it) {
   return os;
 }
 
-constexpr std::expected<std::string, std::string> executable(
+constexpr std::string executable(
   const InstanceType& it
 ) {
   switch (it) {
@@ -540,7 +540,7 @@ constexpr std::expected<std::string, std::string> executable(
     case planetaryInteraction: return "./planetaryInteraction";
   }
 
-  return std::unexpected("error: stop using `static_cast()`");
+  std::unreachable();
 }
 
 struct LaunchInstanceMessage0 {
@@ -637,19 +637,13 @@ std::expected<Message, std::string> parsePacket(
       return ShutdownInstanceMessage0::tryCreate(buf);
   }
 
-  return std::unexpected("error: stop using `static_cast()`");
+  std::unreachable();
 }
 
 struct MessageEnactor {
   void operator()(const LaunchInstanceMessage0& m) const noexcept {
-    const auto maybeE{executable(m.it)};
-    if (!maybeE.has_value()) {
-      std::cout << maybeE.error() << std::endl;
+    const std::string e{executable(m.it)};
 
-      return;
-    }
-
-    const std::string e{std::move(maybeE).value()};
     const pid_t p1{fork()};
     if (p1 == -1) {
       std::cout
