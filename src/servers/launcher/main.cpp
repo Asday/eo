@@ -793,11 +793,11 @@ void run(const BoundSocket& bs, const LauncherRepository& repo) noexcept {
   std::cout << "Starting server as ID " << *ctx.SERVER_ID << std::endl;
 
   std::cout << "Starting heart...";
-  std::jthread heartbeat_worker{heartbeat, std::ref(repo)};
+  std::jthread heartbeatWorker{heartbeat, std::ref(repo)};
   std::cout << "  Heart is beating." << std::endl;
 
   std::cout << "Starting listener...";
-  std::jthread listen_worker{listen_, std::ref(bs)};
+  std::jthread listenWorker{listen_, std::ref(bs)};
 
   sigset_t sigint;
   sigemptyset(&sigint);
