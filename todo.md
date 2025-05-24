@@ -6,22 +6,37 @@
   * [ ] packet error detection/correction
     * [x] caboose for incomplete message detection
     * [ ] checksum dispersed through the packet for more generic detection
-  * [ ] sqlc (with custom template)
+  * [ ] sqlc
+    * [ ] handwrite some repo code to get a feel for what's required
+    * [ ] author custom template
   * [ ] VM based cluster test environment
     * [ ] get something working
     * [ ] look into cloud-init later
+  * [ ] real hardware cluster test environment
   * [ ] logging stuff
     * [ ] enable logging calls based on levels
     * [ ] automatically format messages with their level as a prefix
     * [ ] prefix with executable name, too - looks like terminal output is gonna get mixed
-  * [ ] refactor to multiple files
-    * [ ] build system (nob style?  `#if 0 /*` stuff like in `cpp-examples`?  MAKE!?)
+  * [ ] refactor launcher to be a little less insane
+    * [ ] multiple files
+    * [ ] unique resources instead of custom classes
+    * [ ] less const and noexcept
+  * [ ] memory management
+    * [ ] allocate once at startup and never again
+    * [ ] clear delineation between functions that allocate and those that don't
   * [ ] build system (nob style?  `#if 0 /*` stuff like in `cpp-examples`?  MAKE!?)
     * [ ] make for now until it gets ungodlyly unwieldly
       * [ ] incremental
       	* [ ] it should be but isn't for some reason
       * [x] build target only
       * [ ] reduce duplication by listing prerequisite object files in an environment variable then reusing them in the compilation command
+    * [ ] my own C++ nob (basically make but in C++ and with niceties)
+      * [ ] recompile self
+      * [ ] manually define output files
+      * [ ] manually define dependency trees
+        * [ ] per source file would be nice
+        * [ ] ability to output some sort of dotfile to show dependencies maybe?
+      * [ ] on invocation build targets listed on the command line
   * [ ] network testing
     * [ ] latency injection
       * [ ] constant
@@ -149,8 +164,16 @@
       * [ ] tethering
       * [ ] cloaking
       * [ ] deployables
+      * [ ] aggression timers
       * [ ] handle docking
+      	* [ ] check weapons timer
         * [ ] hand connection over to station server
+      * [ ] handle jumping
+      	* [ ] hand connection over to other grid server
+      	* [ ] check for polarisation
+      * [ ] police
+      	* [ ] faction
+      	* [ ] CONCORD
     * [ ] chat server
       * [ ] accept authorised connections
       * [ ] handle creation of chat room requests
