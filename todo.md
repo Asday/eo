@@ -16,6 +16,12 @@
     * [ ] prefix with executable name, too - looks like terminal output is gonna get mixed
   * [ ] refactor to multiple files
     * [ ] build system (nob style?  `#if 0 /*` stuff like in `cpp-examples`?  MAKE!?)
+  * [ ] build system (nob style?  `#if 0 /*` stuff like in `cpp-examples`?  MAKE!?)
+    * [ ] make for now until it gets ungodlyly unwieldly
+      * [ ] incremental
+      	* [ ] it should be but isn't for some reason
+      * [x] build target only
+      * [ ] reduce duplication by listing prerequisite object files in an environment variable then reusing them in the compilation command
   * [ ] network testing
     * [ ] latency injection
       * [ ] constant

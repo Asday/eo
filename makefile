@@ -1,8 +1,17 @@
 -include build/config.make
 -include build/config-server.make
 
+.SUFFIXES:
+MAKEFLAGS += --no-builtin-rules
+
 .PHONY: all
 all: cluster launcher login client
+
+build/artefacts:
+	mkdir build/artefacts
+
+build/artefacts/shared: build/artefacts
+	mkdir build/artefacts/shared
 
 cluster: src/servers/cluster/main.cpp
 cluster: build/config.make
@@ -37,3 +46,4 @@ client: src/client/main.cpp build/config.make
 .PHONY: clean
 clean:
 	rm -f cluster launcher login client
+	rm -rf build/artefacts

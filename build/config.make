@@ -7,5 +7,6 @@ CXXFLAGS = \
 	-Werror \
 	-Wsign-conversion \
 	-pedantic-errors \
-	-g
+	-g \
+	-Isrc
 LDFLAGS =
