@@ -2,6 +2,8 @@
 
 * [ ] miscellanery
   * [ ] prepared statements
+    * [x] implement
+    * [ ] test
   * [ ] DTLS
   * [ ] packet error detection/correction
     * [x] caboose for incomplete message detection
@@ -49,13 +51,35 @@
 * [ ] server cluster
   * [ ] instances (long lived stuff)
     * [ ] cluster executable (one per cluster)
-      * [ ] connect to database
-      * [ ] find launcher instance(s)
-      * [ ] launch a login server for own name
+      * [ ] take args from command line
+        * [x] `clusterID` (0-255)
+        * [ ] `--admin` (absent/present)
+      * [x] connect to database
+      * [ ] check the `clusterID` exists
+      * [ ] log name
+      * [ ] set status to `startup`
+      * [ ] find launcher instance(s) retrying if there aren't any
+      * [ ] launch a login server
+        * [ ] for own `clusterID`
+        * [ ] if launched as `--admin`, with the `--admin` flag
       * [ ] launch a chat server
       * [ ] launch persistent services
-      * [ ] present CLI
-        * [ ] handle cluster shutdown
+      * [ ] if launched as `--admin`, show info and handle input
+        * [ ] "[s]hutdown / [o]nline"
+        * [ ] shutdown
+        * [ ] online
+      * [ ] set status to online
+        * [ ] if launched as `--admin`, tell the login server to open up
+        * [ ] in the database
+      * [ ] handle cluster shutdown (just do this on `SIGINT`, dummy)
+        * [ ] set status to `shutdownRequested`
+        * [ ] broadcast timer (somehow)
+        * [ ] wait out the timer
+        * [ ] set status to `shutdown`
+        * [ ] kill login server
+        * [ ] wait out the servers for own `clusterID`
+        * [ ] set status to `offline`
+        * [ ] exit
     * [ ] launcher executable (one per physical machine)
       * [x] connect to database
       * [ ] advertise self in the database
