@@ -10,13 +10,13 @@ all: cluster launcher login client
 build/artefacts:
 	mkdir build/artefacts
 
-build/artefacts/shared: build/artefacts
+build/artefacts/shared: | build/artefacts
 	mkdir build/artefacts/shared
 
 build/artefacts/shared/db.o: src/shared/db.cpp
 build/artefacts/shared/db.o: src/shared/db.h
 build/artefacts/shared/db.o: build/config.make
-build/artefacts/shared/db.o: build/artefacts/shared
+build/artefacts/shared/db.o: | build/artefacts/shared
 	$(CXX) \
 		$(CXXFLAGS) \
 		src/shared/db.cpp \
@@ -26,7 +26,7 @@ build/artefacts/shared/db.o: build/artefacts/shared
 build/artefacts/shared/lg.o: src/shared/lg.cpp
 build/artefacts/shared/lg.o: src/shared/lg.h
 build/artefacts/shared/lg.o: build/config.make
-build/artefacts/shared/lg.o: build/artefacts/shared
+build/artefacts/shared/lg.o: | build/artefacts/shared
 	$(CXX) \
 		$(CXXFLAGS) \
 		src/shared/lg.cpp \
@@ -38,7 +38,7 @@ build/artefacts/shared/repo.o: src/shared/repo.h
 build/artefacts/shared/repo.o: src/shared/db.h
 build/artefacts/shared/repo.o: src/shared/lg.h
 build/artefacts/shared/repo.o: build/config.make
-build/artefacts/shared/repo.o: build/artefacts/shared
+build/artefacts/shared/repo.o: | build/artefacts/shared
 	$(CXX) \
 		$(CXXFLAGS) \
 		src/shared/repo.cpp \
@@ -48,7 +48,7 @@ build/artefacts/shared/repo.o: build/artefacts/shared
 build/artefacts/shared/signal.o: src/shared/signal.cpp
 build/artefacts/shared/signal.o: src/shared/signal.h
 build/artefacts/shared/signal.o: build/config.make
-build/artefacts/shared/signal.o: build/artefacts/shared
+build/artefacts/shared/signal.o: | build/artefacts/shared
 	$(CXX) \
 		$(CXXFLAGS) \
 		src/shared/signal.cpp \

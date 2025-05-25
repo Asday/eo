@@ -28,8 +28,9 @@
     * [ ] clear delineation between functions that allocate and those that don't
   * [ ] build system (nob style?  `#if 0 /*` stuff like in `cpp-examples`?  MAKE!?)
     * [ ] make for now until it gets ungodlyly unwieldly
-      * [ ] incremental
-      	* [ ] it should be but isn't for some reason
+      * [x] incremental
+      	* it should be but isn't for some reason
+        * oh order-only targets are the sauce
       * [x] build target only
       * [ ] reduce duplication by listing prerequisite object files in an environment variable then reusing them in the compilation command
     * [ ] my own C++ nob (basically make but in C++ and with niceties)
