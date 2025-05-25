@@ -3,6 +3,7 @@
 * [ ] miscellanery
   * [ ] prepared statements
     * [x] implement
+    * [ ] implement but nicer so the caller doesn't have to care and can use just SQL while calling `db::exec()` which figures out whether it's a `PREPARE`, `EXECUTE`, or otherwise
     * [ ] test
   * [ ] DTLS
   * [ ] packet error detection/correction
