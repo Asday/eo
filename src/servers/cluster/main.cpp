@@ -64,13 +64,13 @@ int main(int argc, char* argv[]) {
   std::array<sockaddr_in, 3> launchers;
   {
     while (true) {
+      lg::info(LG_NAME, "getting 3 launchers");
       auto maybeLaunchers{repo::get3Launchers(conn)};
       if (maybeLaunchers.has_value()) {
         launchers = std::move(maybeLaunchers).value();
 
         break;
       } else {
-        lg::info(LG_NAME, "getting 3 launchers");
         if ( /* should die */ std::visit(Visitor{
           [](const std::string_view& err) {
             lg::fatal(LG_NAME, (std::stringstream()
