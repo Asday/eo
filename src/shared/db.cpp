@@ -54,3 +54,70 @@ std::expected<db::PGresultUR, std::string_view> db::exec(
 ) {
   return db::exec(c, sql, std::vector<char*>{});
 }
+
+std::expected<void, std::string_view> db::prepare(
+  const db::PGconnUR& c,
+  std::string_view name,
+  std::string_view sql
+) {
+  db::PGresultUR res{
+    PQprepare(
+      c.get(),
+      name.data(),
+      sql.data(),
+      0,
+      nullptr
+    ),
+    PQclear
+  };
+
+  if (
+    const ExecStatusType s{PQresultStatus(res.get())};
+    s != PGRES_TUPLES_OK
+    && s != PGRES_TUPLES_CHUNK
+    && s != PGRES_SINGLE_TUPLE
+    && s != PGRES_COMMAND_OK
+  ) {
+    return std::unexpected(PQerrorMessage(c.get()));
+  }
+
+  return {};
+}
+
+std::expected<db::PGresultUR, std::string_view> db::execPrepared(
+  const db::PGconnUR& c,
+  std::string_view name,
+  std::vector<char*> params
+) {
+  db::PGresultUR res{
+    PQexecPrepared(
+      c.get(),
+      name.data(),
+      params.size(),
+      params.data(),
+      nullptr,
+      nullptr,
+      1
+    ),
+    PQclear
+  };
+
+  if (
+    const ExecStatusType s{PQresultStatus(res.get())};
+    s != PGRES_TUPLES_OK
+    && s != PGRES_TUPLES_CHUNK
+    && s != PGRES_SINGLE_TUPLE
+    && s != PGRES_COMMAND_OK
+  ) {
+    return std::unexpected(PQerrorMessage(c.get()));
+  }
+
+  return res;
+}
+
+std::expected<db::PGresultUR, std::string_view> db::execPrepared(
+  const db::PGconnUR& c,
+  std::string_view name
+) {
+  return db::execPrepared(c, name, {});
+}
