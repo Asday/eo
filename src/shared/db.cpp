@@ -35,13 +35,14 @@ std::expected<db::PGresultUR, std::string_view> db::exec(
     PQclear
   };
 
-  {
+  if (
     const ExecStatusType s{PQresultStatus(res.get())};
-    if (s != PGRES_TUPLES_OK && s != PGRES_COMMAND_OK) {
-      res.release();
-
-      return std::unexpected(PQerrorMessage(c.get()));
-    }
+    s != PGRES_TUPLES_OK
+    && s != PGRES_TUPLES_CHUNK
+    && s != PGRES_SINGLE_TUPLE
+    && s != PGRES_COMMAND_OK
+  ) {
+    return std::unexpected(PQerrorMessage(c.get()));
   }
 
   return res;
