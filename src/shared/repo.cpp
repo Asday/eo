@@ -1,6 +1,7 @@
 #include "repo.h"
 
 #include "shared/db.h"
+#include "shared/lg.h"
 
 #include <libpq-fe.h>
 
@@ -11,6 +12,8 @@
 #include <string_view>
 #include <variant>
 #include <vector>
+
+static constexpr std::string_view LG_NAME{"repo"};
 
 std::expected<void, std::string_view>
 prepareGet3Launchers(const db::PGconnUR& conn) {
@@ -65,7 +68,11 @@ std::expected<
     res = std::move(maybeRes).value().get();
   }
 
-  auto rowCount{PQntuples(res)};
+  int rowCount{PQntuples(res)};
+  lg::debug(
+    (std::stringstream() << LG_NAME << ".get3Launchers").view(),
+    (std::stringstream() << "got " << +rowCount << " rows").view()
+  );
   switch (rowCount) {
     case 0: return std::unexpected(NoLaunchers{});
     case 3: {
