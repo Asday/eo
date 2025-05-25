@@ -6,6 +6,7 @@
 #include <charconv>
 #include <cstdint>
 #include <iostream>
+#include <sstream>
 #include <string_view>
 #include <thread>
 
@@ -37,27 +38,27 @@ int main(int argc, char* argv[]) {
     rawCID.data() + rawCID.size(),
     clusterID
   ).ec != std::errc{}) {
-    std::clog << "fatal: invalid clusterID" << std::endl;
+    lg::fatal(LG_NAME, "fatal: invalid clusterID");
 
     return -1;
   }
 
-  lg::debug(LG_NAME, "connecting to DB");
+  lg::info(LG_NAME, "connecting to DB");
   db::PGconnUR conn;
   {
     auto maybeConn{db::connect()};
     if (!maybeConn.has_value()) {
-      std::clog
+      lg::fatal(LG_NAME, (std::stringstream()
         << "fatal: failed to connect to DB: "
         << maybeConn.error()
-        << std::endl
-      ;
+      ).view());
+
       return -1;
     }
     conn = std::move(maybeConn).value();
   }
 
-  std::clog << "debug: initialising repo" << std::endl;
+  lg::info(LG_NAME, "initialising repo");
   repo::init(conn);
 
   std::array<sockaddr_in, 3> launchers;
@@ -69,32 +70,28 @@ int main(int argc, char* argv[]) {
 
         break;
       } else {
-        std::clog << "debug: getting 3 launchers" << std::endl;
+        lg::info(LG_NAME, "getting 3 launchers");
         if ( /* should die */ std::visit(Visitor{
           [](const std::string_view& err) {
-            std::clog
-              << "fatal: failed to get 3 launchers: "
+            lg::fatal(LG_NAME, (std::stringstream()
+              << "failed to get 3 launchers: "
               << err
-              << std::endl;
-            ;
+            ).view());
 
             return true;  // die
           },
           []([[maybe_unused]] const repo::Not3Launchers&) {
-            std::clog
-              << "fatal: Adam your SQL sucks and you got some non-3"
-                " amount of launchers with that SQL that should"
-                " definitely only return 0 or 3 rows"
-              << std::endl
-            ;
+            lg::fatal(
+              LG_NAME,
+              "Adam your SQL sucks and you got some non-3 amount of"
+              " launchers with that SQL that should definitely only"
+              " return 0 or 3 rows"
+            );
 
             return true;  // die
           },
           []([[maybe_unused]] const repo::NoLaunchers&) {
-            std::clog
-              << "debug: no launchers found (yet), retrying soon"
-              << std::endl
-            ;
+            lg::info(LG_NAME, "no launchers found (yet), retrying soon");
 
             return false;  // retry
           }
@@ -107,5 +104,5 @@ int main(int argc, char* argv[]) {
 
   signal::waitForInterrupt();
 
-  std::cout << "info: caught SIG{INT,TERM}, shutting down" << std::endl;
+  lg::info(LG_NAME, "caught SIG{INT,TERM}, shutting down");
 }

@@ -36,6 +36,7 @@ build/artefacts/shared/lg.o: build/artefacts/shared
 build/artefacts/shared/repo.o: src/shared/repo.cpp
 build/artefacts/shared/repo.o: src/shared/repo.h
 build/artefacts/shared/repo.o: src/shared/db.h
+build/artefacts/shared/repo.o: src/shared/lg.h
 build/artefacts/shared/repo.o: build/config.make
 build/artefacts/shared/repo.o: build/artefacts/shared
 	$(CXX) \
