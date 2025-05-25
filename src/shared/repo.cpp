@@ -1,6 +1,6 @@
 #include "repo.h"
 
-#include "db.h"
+#include "shared/db.h"
 
 #include <libpq-fe.h>
 
