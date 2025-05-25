@@ -17,9 +17,13 @@ static constexpr std::string_view LG_NAME{"repo"};
 
 std::expected<void, std::string_view>
 prepareGet3Launchers(const db::PGconnUR& conn) {
-  auto maybeRes{db::exec(
+  lg::debug(
+    (std::stringstream() << LG_NAME << ".prepareGet3Launchers").view(),
+    "preparing `get3Launchers`"
+  );
+  auto maybeRes{db::prepare(
     conn,
-    "PREPARE get3Launchers AS "
+    "get3Launchers",
     "SELECT ip, port FROM ( "
     "  SELECT ip, port, heartbeat, 1 AS n FROM launcher "
     "  UNION ALL "
@@ -58,7 +62,11 @@ std::expected<
 > repo::get3Launchers(const db::PGconnUR& conn) {
   PGresult* res;
   {
-    auto maybeRes{db::exec(conn, "EXECUTE get3Launchers;")};
+    lg::debug(
+      (std::stringstream() << LG_NAME << ".get3Launchers").view(),
+      "executing `get3Launchers`"
+    );
+    auto maybeRes{db::execPrepared(conn, "get3Launchers")};
     if (!maybeRes.has_value()) {
       return std::unexpected((std::stringstream()
         << "failed to execute `get3Launchers`: "
@@ -92,6 +100,10 @@ std::expected<
 
 std::expected<void, std::vector<std::string_view>>
 repo::init(const db::PGconnUR& conn) {
+  lg::debug(
+    (std::stringstream() << LG_NAME << ".init").view(),
+    "initialising repo"
+  );
   std::array<decltype(&prepareGet3Launchers), 1> todo = {prepareGet3Launchers};
   std::vector<std::string_view> errors;
   errors.reserve(todo.size());
