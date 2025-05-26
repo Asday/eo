@@ -15,6 +15,7 @@ build/artefacts/shared: | build/artefacts
 
 build/artefacts/shared/db.o: src/shared/db.cpp
 build/artefacts/shared/db.o: src/shared/db.h
+build/artefacts/shared/db.o: src/shared/lg.h
 build/artefacts/shared/db.o: build/config.make
 build/artefacts/shared/db.o: | build/artefacts/shared
 	$(CXX) \

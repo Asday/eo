@@ -1,6 +1,7 @@
 #include "lg.h"
 
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <stdlib.h>
 #include <sstream>
@@ -158,8 +159,7 @@ inline bool isEnabled(Level l, std::string_view name) {
   return false;
 }
 
-void log(Level level, std::string_view name, std::string_view message) {
-  if (!isEnabled(level, name)) return;
+void render(Level level, std::string_view name, std::string_view message) {
   std::clog
     << name
     << colors::fg::cyan
@@ -172,20 +172,48 @@ void log(Level level, std::string_view name, std::string_view message) {
   ;
 }
 
+void log(Level level, std::string_view name, std::string_view message) {
+  if (!isEnabled(level, name)) return;
+  render(level, name, message);
+}
+
+using Getter = std::function<std::string()>;
+
+void log(Level level, std::string_view name, Getter getMessage) {
+  if (!isEnabled(level, name)) return;
+  render(level, name, getMessage());
+}
+
 void lg::debug(std::string_view name, std::string_view message) {
   log(Level::debug, name, message);
+}
+
+void lg::debug(std::string_view name, Getter getMessage) {
+  log(Level::debug, name, getMessage);
 }
 
 void lg::info(std::string_view name, std::string_view message) {
   log(Level::info, name, message);
 }
 
+void lg::info(std::string_view name, Getter getMessage) {
+  log(Level::info, name, getMessage);
+}
+
 void lg::warning(std::string_view name, std::string_view message) {
   log(Level::warning, name, message);
 }
 
+void lg::warning(std::string_view name, Getter getMessage) {
+  log(Level::warning, name, getMessage);
+}
+
 void lg::fatal(std::string_view name, std::string_view message) {
   log(Level::fatal, name, message);
+}
+
+void lg::fatal(std::string_view name, Getter getMessage) {
+  log(Level::fatal, name, getMessage);
 }
 
 void sortAndSimplify([[maybe_unused]] Namespaces& n) {

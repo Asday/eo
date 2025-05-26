@@ -79,7 +79,7 @@ std::expected<
   int rowCount{PQntuples(res)};
   lg::debug(
     (std::stringstream() << LG_NAME << ".get3Launchers").view(),
-    (std::stringstream() << "got " << +rowCount << " rows").view()
+    (std::stringstream() << "got " << rowCount << " rows").view()
   );
   switch (rowCount) {
     case 0: return std::unexpected(NoLaunchers{});
