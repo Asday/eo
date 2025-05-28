@@ -60,7 +60,7 @@ std::expected<
   std::array<sockaddr_in, 3>,
   std::variant<repo::NoLaunchers, repo::Not3Launchers, std::string_view>
 > repo::get3Launchers(const db::PGconnUR& conn) {
-  PGresult* res;
+  db::PGresultUR res;
   {
     lg::debug(
       (std::stringstream() << LG_NAME << ".get3Launchers").view(),
@@ -73,10 +73,10 @@ std::expected<
         << maybeRes.error()
       ).view());
     }
-    res = std::move(maybeRes).value().get();
+    res = std::move(maybeRes).value();
   }
 
-  int rowCount{PQntuples(res)};
+  int rowCount{PQntuples(res.get())};
   lg::debug(
     (std::stringstream() << LG_NAME << ".get3Launchers").view(),
     (std::stringstream() << "got " << rowCount << " rows").view()
@@ -84,13 +84,13 @@ std::expected<
   switch (rowCount) {
     case 0: return std::unexpected(NoLaunchers{});
     case 3: {
-      int ipCol{PQfnumber(res, "ip")};
-      int portCol{PQfnumber(res, "port")};
+      int ipCol{PQfnumber(res.get(), "ip")};
+      int portCol{PQfnumber(res.get(), "port")};
 
       return std::array<sockaddr_in, 3>{{
-        fromLauncher(res, 0, ipCol, portCol),
-        fromLauncher(res, 1, ipCol, portCol),
-        fromLauncher(res, 2, ipCol, portCol)
+        fromLauncher(res.get(), 0, ipCol, portCol),
+        fromLauncher(res.get(), 1, ipCol, portCol),
+        fromLauncher(res.get(), 2, ipCol, portCol)
       }};
     }
 
