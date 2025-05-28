@@ -44,7 +44,7 @@ prepareGet3Launchers(const db::PGconnUR& conn) {
   return {};
 }
 
-inline sockaddr_in
+constexpr sockaddr_in
 fromLauncher(PGresult* res, int row, int ipCol, int portCol) {
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
