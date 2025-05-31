@@ -13,14 +13,12 @@
 #include <variant>
 #include <vector>
 
-static constexpr std::string_view LG_NAME{"repo"};
+#define _LG_NS "repo"
 
 std::expected<void, std::string_view>
 prepareGet3Launchers(const db::PGconnUR& conn) {
-  lg::debug(
-    (std::stringstream() << LG_NAME << ".prepareGet3Launchers").view(),
-    "preparing `get3Launchers`"
-  );
+  static constexpr std::string_view LG_NAME{_LG_NS ".prepareGet3Launchers"};
+  lg::debug(LG_NAME, "preparing `get3Launchers`");
   auto maybeRes{db::prepare(
     conn,
     "get3Launchers",
@@ -61,11 +59,9 @@ std::expected<
   std::variant<repo::NoLaunchers, repo::Not3Launchers, std::string_view>
 > repo::get3Launchers(const db::PGconnUR& conn) {
   db::PGresultUR res;
+  static constexpr std::string_view LG_NAME{_LG_NS ".get3Launchers"};
   {
-    lg::debug(
-      (std::stringstream() << LG_NAME << ".get3Launchers").view(),
-      "executing `get3Launchers`"
-    );
+    lg::debug(LG_NAME, "executing `get3Launchers`");
     auto maybeRes{db::execPrepared(conn, "get3Launchers")};
     if (!maybeRes.has_value()) {
       return std::unexpected((std::stringstream()
@@ -77,10 +73,9 @@ std::expected<
   }
 
   int rowCount{PQntuples(res.get())};
-  lg::debug(
-    (std::stringstream() << LG_NAME << ".get3Launchers").view(),
-    (std::stringstream() << "got " << rowCount << " rows").view()
-  );
+  lg::debug(LG_NAME, (std::stringstream()
+    << "got " << rowCount << " rows"
+  ).view());
   switch (rowCount) {
     case 0: return std::unexpected(NoLaunchers{});
     case 3: {
@@ -100,10 +95,9 @@ std::expected<
 
 std::expected<void, std::vector<std::string_view>>
 repo::init(const db::PGconnUR& conn) {
-  lg::debug(
-    (std::stringstream() << LG_NAME << ".init").view(),
-    "initialising repo"
-  );
+  static constexpr std::string_view LG_NAME{_LG_NS ".init"};
+  lg::debug(LG_NAME, "initialising repo");
+
   std::array<decltype(&prepareGet3Launchers), 1> todo = {prepareGet3Launchers};
   std::vector<std::string_view> errors;
   errors.reserve(todo.size());
@@ -116,3 +110,5 @@ repo::init(const db::PGconnUR& conn) {
 
   return {};
 }
+
+#undef _LG_NS
