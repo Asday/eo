@@ -57,10 +57,10 @@
         * [x] `clusterID` (0-255)
         * [ ] `--admin` (absent/present)
       * [x] connect to database
-      * [ ] check the `clusterID` exists
-      * [ ] log name
+      * [x] check the `clusterID` exists
+      * [x] log name
       * [ ] set status to `startup`
-      * [ ] find launcher instance(s) retrying if there aren't any
+      * [x] find launcher instance(s) retrying if there aren't any
       * [ ] launch a login server
         * [ ] for own `clusterID`
         * [ ] if launched as `--admin`, with the `--admin` flag
@@ -81,7 +81,7 @@
         * [ ] kill login server
         * [ ] wait out the servers for own `clusterID`
         * [ ] set status to `offline`
-        * [ ] exit
+        * [x] exit
     * [ ] launcher executable (one per physical machine)
       * [x] connect to database
       * [ ] advertise self in the database

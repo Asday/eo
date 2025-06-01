@@ -61,6 +61,51 @@ int main(int argc, char* argv[]) {
   lg::info(LG_NAME, "initialising repo");
   repo::init(conn);
 
+  lg::info(LG_NAME, "getting cluster details");
+  repo::Cluster cluster;
+  {
+    auto maybeCluster{repo::getCluster(conn, clusterID)};
+    if (maybeCluster.has_value()) {
+      cluster = std::move(maybeCluster).value();
+    } else {
+      std::visit(Visitor{
+        [clusterID]([[maybe_unused]] const repo::NoClusters&) {
+          lg::info(LG_NAME, (std::stringstream()
+            << "no cluster for id `" << clusterID << '`'
+          ).view());
+        },
+        [clusterID]([[maybe_unused]] const repo::Not1Cluster&) {
+          lg::fatal(LG_NAME, (std::stringstream()
+            << "more than one cluster for id `" << clusterID << '`'
+          ).view());
+        },
+        [](const repo::UnexpectedEnumValue& uev) {
+          lg::fatal(LG_NAME, (std::stringstream()
+            << "unexpected enum value: " << uev
+          ).view());
+        },
+        [](const std::string_view& err) {
+          lg::fatal(LG_NAME, (std::stringstream()
+            << "failed to get cluster1: " << err
+          ).view());
+        }
+      }, maybeCluster.error());
+
+      return -1;
+    }
+  }
+  if (cluster.status != repo::ClusterStatus::offline) {
+    lg::fatal(LG_NAME, (std::stringstream()
+      << "cluster `"
+      << cluster.name
+      << "` is currently `"
+      << cluster.status
+      << "` but must be `offline`"
+    ).view());
+
+    return -1;
+  }
+
   std::array<sockaddr_in, 3> launchers;
   {
     while (true) {
