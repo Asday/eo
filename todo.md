@@ -1,6 +1,9 @@
 # TODO
 
 * [ ] miscellanery
+  * [ ] in `db.cpp`, log statements with triple backticks and newlines or single backticks depending on whether the query contains newlines
+  * [ ] in `repo.cpp`, deal with pluralisation when logging rowcounts
+  * [ ] SOMETHING is going wrong with logging when there's a fatal error due to attempting to execute a prepared statement that doesn't exist: "cluster | fatal: failed to get cluster: failed to get cluster: luster`: ERROR:  prepared statement "getCluster" does not exist"
   * [ ] prepared statements
     * [x] implement
     * [ ] implement but nicer so the caller doesn't have to care and can use just SQL while calling `db::exec()` which figures out whether it's a `PREPARE`, `EXECUTE`, or otherwise
