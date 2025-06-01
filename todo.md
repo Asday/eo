@@ -4,7 +4,7 @@
   * [ ] prepared statements
     * [x] implement
     * [ ] implement but nicer so the caller doesn't have to care and can use just SQL while calling `db::exec()` which figures out whether it's a `PREPARE`, `EXECUTE`, or otherwise
-    * [ ] test
+    * [x] test
   * [ ] DTLS
   * [ ] packet error detection/correction
     * [x] caboose for incomplete message detection
@@ -17,8 +17,8 @@
     * [ ] look into cloud-init later
   * [ ] real hardware cluster test environment
   * [ ] logging stuff
-    * [ ] enable logging calls based on levels
-    * [ ] automatically format messages with their level as a prefix
+    * [x] enable logging calls based on levels
+    * [x] automatically format messages with their level as a prefix
     * [ ] prefix with executable name, too - looks like terminal output is gonna get mixed
   * [ ] refactor launcher to be a little less insane
     * [ ] multiple files
