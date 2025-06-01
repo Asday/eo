@@ -22,15 +22,15 @@ prepareGet3Launchers(const db::PGconnUR& conn) {
   auto maybeRes{db::prepare(
     conn,
     "get3Launchers",
-    "SELECT ip, port FROM ( "
-    "  SELECT ip, port, heartbeat, 1 AS n FROM launcher "
-    "  UNION ALL "
-    "  SELECT ip, port, heartbeat, 2 AS n FROM launcher "
-    "  UNION ALL "
-    "  SELECT ip, port, heartbeat, 3 AS n FROM launcher "
-    "  ORDER BY n, heartbeat DESC "
-    "  LIMIT 3 "
-    "); "
+    "SELECT ip, port FROM (\n"
+    "  SELECT ip, port, heartbeat, 1 AS n FROM launcher\n"
+    "  UNION ALL\n"
+    "  SELECT ip, port, heartbeat, 2 AS n FROM launcher\n"
+    "  UNION ALL\n"
+    "  SELECT ip, port, heartbeat, 3 AS n FROM launcher\n"
+    "  ORDER BY n, heartbeat DESC\n"
+    "  LIMIT 3\n"
+    ");"
   )};
   if (!maybeRes.has_value()) {
     return std::unexpected((std::stringstream()
