@@ -1,9 +1,4 @@
-/build/artefacts
+/.build
 b
 
 /.envrc
-
-/cluster
-/launcher
-/login
-/client

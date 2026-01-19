@@ -31,19 +31,21 @@
     * [ ] allocate once at startup and never again
     * [ ] clear delineation between functions that allocate and those that don't
   * [ ] build system (nob style?  `#if 0 /*` stuff like in `cpp-examples`?  MAKE!?)
-    * [ ] make for now until it gets ungodlyly unwieldly
-      * [x] incremental
-      	* it should be but isn't for some reason
-        * oh order-only targets are the sauce
+    ~* [ ] make for now until it gets ungodlyly unwieldly~
+      ~* [x] incremental~
+      	~* it should be but isn't for some reason~
+        ~* oh order-only targets are the sauce~
       * [x] build target only
-      * [ ] reduce duplication by listing prerequisite object files in an environment variable then reusing them in the compilation command
+      ~* [ ] reduce duplication by listing prerequisite object files in an environment variable then reusing them in the compilation command~
     * [ ] my own C++ nob (basically make but in C++ and with niceties)
-      * [ ] recompile self
-      * [ ] manually define output files
-      * [ ] manually define dependency trees
-        * [ ] per source file would be nice
-        * [ ] ability to output some sort of dotfile to show dependencies maybe?
-      * [ ] on invocation build targets listed on the command line
+      * [x] recompile self
+      ~* [ ] manually define output files~
+      ~* [ ] manually define dependency trees~
+        ~* [ ] per source file would be nice~
+        ~* [ ] ability to output some sort of dotfile to show dependencies maybe?~
+      * [x] AUTOMATICALLY determines output files and dependency trees hell yeah
+      * [x] on invocation build targets listed on the command line
+      * [ ] multiprocessing
   * [ ] network testing
     * [ ] latency injection
       * [ ] constant

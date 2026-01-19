@@ -130,6 +130,18 @@ RebuildResult latest(char* argv[]) {
   return RebuildResult::FAILED;
 }
 
+std::ostream& operator<<(
+  std::ostream& os,
+  const std::filesystem::file_time_type& t
+) {
+  const auto s{
+    std::chrono::system_clock::to_time_t(std::chrono::file_clock::to_sys(t))
+  };
+  os << std::put_time(std::localtime(&s), "%c");
+
+  return os;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 bool usage() {
@@ -157,8 +169,7 @@ bool clean() {
   */
 
   auto maybePIDs{std::array{
-    runAsync({"rm", "-f", "cluster", "launcher", "login", "client"}),
-    runAsync({"rm", "-rf", "build/artefacts"})
+    runAsync({"rm", "-rf", "../.build"})
   }};
   std::vector<pid_t> pids;
   for (const auto& maybePID : maybePIDs) {
@@ -268,12 +279,103 @@ Dependencies divineDependencies(std::filesystem::path target) {
   return r;
 }
 
-bool buildTargets(
+std::filesystem::path getBinPath(const std::filesystem::path& target) {
+  return std::filesystem::path{} / "../.build/o/" / target;
+}
+
+std::filesystem::path getExePath(const std::filesystem::path& target) {
+  return std::filesystem::path{} / "../.build/bin/" / target.stem();
+}
+
+bool mkdirs(const std::filesystem::path& dest) {
+  const auto maybeExitCode{runSync({"mkdir", "-p", dest.parent_path().c_str()})};
+  if (maybeExitCode.has_value()) {
+    if (maybeExitCode.value() == 0) return true;
+  }
+
+  std::clog << "failed to make output dir for `" << dest << "`: ";
+
+  if (!maybeExitCode.has_value()) std::clog << maybeExitCode.error();
+  else std::clog << "exit code: " << maybeExitCode.value();
+
+  std::clog << std::endl;
+
+  return false;
+}
+
+bool compile(
   [[maybe_unused]] std::vector<std::string_view> flags,
-  [[maybe_unused]] std::vector<std::filesystem::path> targets
+  const std::filesystem::path& target,
+  const std::filesystem::path& dest
+) {
+  std::clog << "compiling " << target << std::endl;
+
+  if (!mkdirs(dest)) return false;
+
+  auto src{getSource(target)};
+  if (!src) {
+    std::clog << "failed to compile: cannot find source" << std::endl;
+    return false;
+  }
+
+  const auto& r{runSync({
+    "g++",
+    "-std=c++23",
+    "-O3",
+    "-c",
+    "-g",
+    "-Wall", "-Werror", "-Wextra", "-Wsign-conversion", "-pedantic-errors",
+    "-I.",
+    src.value().string().c_str(),
+    "-o", dest.string().c_str()
+  })};
+  if (!r) {
+    std::clog << "failed to compile: " << r.error() << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
+bool link_(
+  [[maybe_unused]] std::vector<std::string_view> flags,
+  [[maybe_unused]] const Dependencies& d,
+  const std::filesystem::path& dest
+) {
+  std::clog << "linking " << d << std::endl;
+
+  if (!mkdirs(dest)) return false;
+
+  const std::string destString{dest.string()};
+  const std::string targetString{getBinPath(d.target).string()};
+  std::vector<char const*> cmd{{ "g++", "-g", "-o", destString.c_str(), targetString.c_str() }};
+  std::vector<std::string> anchors{};
+  for (const auto& o : d.objects) { anchors.push_back(getBinPath(o.string())); }
+  for (const auto& iDir : d.includeDirs) {
+    anchors.push_back((std::stringstream() << "-I" << iDir).str().c_str());
+  }
+  for (const auto& lDir : d.libDirs) {
+    anchors.push_back((std::stringstream() << "-L" << lDir).str().c_str());
+  }
+  for (const auto& l : d.libs) {
+    anchors.push_back((std::stringstream() << "-l" << l).str().c_str());
+  }
+  for (const auto& a : anchors) { cmd.push_back(a.c_str()); }
+  const auto& r{runSync(cmd)};
+  if (!r) {
+    std::clog << "failed to link: " << r.error() << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
+bool buildTargets(
+  std::vector<std::string_view> flags,
+  std::vector<std::filesystem::path> targets
 ) {
   std::vector<Dependencies> deps{};
-  std::vector<std::filesystem::path> checked{};
+  std::vector<std::filesystem::path> seen{};
   for (const auto& target : targets) {
     deps.push_back(divineDependencies(target));
   }
@@ -281,26 +383,134 @@ bool buildTargets(
   for (decltype(deps)::size_type i{0}; i < deps.size(); i++) {
     const auto d{deps[i]};
     for (const auto& o : d.objects) {
-      for (const auto& c : checked) {
-        if (c == o) goto skip;
+      for (const auto& s : seen) {
+        if (s == o) goto skip;
       }
       deps.push_back(divineDependencies(o));
-      checked.push_back(o);
+      seen.push_back(o);
 
       skip:
     }
   }
 
-  // for (const auto& d : deps) std::clog << d << '\n';
-  // std::clog << std::flush;
-  // TODO:
-  //
-  // * sort by `objects` dependencies?  (ok but how?  Flattening a tree
-  //   is fine but...)
-  // * for each `Dependencies`:
-  //   * check the age of the target vs the source and objects
-  //   * if it's older than any, recompile it
-  //   * if it's an executable, relink it
+  // Sort by `.objects` dependencies.
+  std::vector<Dependencies> sortedDeps{};
+  seen.clear();
+  auto lastSize{sortedDeps.size()};
+  while (sortedDeps.size() != deps.size()) {
+    for (const auto& d : deps) {
+      for (const auto& sD : sortedDeps) {
+        if (d.target == sD.target) goto alreadySorted;
+      }
+      for (const auto& o : d.objects) {
+        for (const auto& s : seen) {
+          if (s == o) goto accountedFor;
+        }
+
+        goto cannotBuildYet;
+
+        accountedFor:  // This object is already in `sortedDeps`.
+      }
+
+      // If we're here, every object is already in `sortedDeps` so this
+      // `Dependencies{}` will be buildable at this point.
+      sortedDeps.push_back(d);
+      seen.push_back(d.target);
+
+      cannotBuildYet:  // Need more prerequisites.
+      alreadySorted:
+    }
+
+    if (sortedDeps.size() == lastSize) {
+      std::clog << "include cycle detected, fix it dingus" << std::endl;
+      return false;
+    }
+  }
+
+  // Propagate libs and dirs from child dependencies.
+  for (auto& d : sortedDeps) {
+    for (const auto& o : d.objects) {
+      for (const auto& otherDep : sortedDeps) {
+        if (otherDep.target == o) {
+          for (const auto& otherIDir : otherDep.includeDirs) {
+            for (const auto& iDir : d.includeDirs) {
+              if (otherIDir == iDir) goto includeDirPropagated;
+            }
+            d.includeDirs.push_back(otherIDir);
+            includeDirPropagated:
+          }
+
+          for (const auto& otherLDir : otherDep.libDirs) {
+            for (const auto& lDir : d.libDirs) {
+              if (otherLDir == lDir) goto libDirPropagated;
+            }
+            d.libDirs.push_back(otherLDir);
+            libDirPropagated:
+          }
+
+          for (const auto& otherL : otherDep.libs) {
+            for (const auto& l : d.libs) {
+              if (otherL == l) goto libPropagated;
+            }
+            d.libs.push_back(otherL);
+            libPropagated:
+          }
+
+          break;
+        }
+      }
+    }
+  }
+
+  for (const auto& d : sortedDeps) {
+    bool exe{d.target.extension() == ""};
+    std::filesystem::path source;
+    {
+      const auto maybeSource{getSource(d.target)};
+      if (!maybeSource.has_value()) {
+        std::clog << "couldn't find source for " << d.target << std::endl;
+        return false;
+      }
+      source = std::move(maybeSource).value();
+    }
+
+    auto sourceTime{std::filesystem::last_write_time(source)};
+    std::filesystem::file_time_type binTime;
+    const std::filesystem::path binPath{getBinPath(d.target)};
+    try { binTime = std::filesystem::last_write_time(binPath); }
+    catch (const std::exception&) {
+      binTime = std::filesystem::file_time_type::min();
+    }
+
+    if (sourceTime <= binTime) goto alreadyCompiled;
+
+    if (!compile(flags, d.target, binPath)) return false;
+
+    alreadyCompiled:
+    if (exe) {
+      std::filesystem::file_time_type exeTime;
+      const std::filesystem::path exePath{getExePath(d.target)};
+      try { exeTime = std::filesystem::last_write_time(exePath); }
+      catch (const std::exception&) {
+        exeTime = std::filesystem::file_time_type::min();
+      }
+      if (exeTime <= binTime) goto needsLinking;
+
+      for (const auto& o : d.objects) {
+        std::filesystem::file_time_type objectTime;
+        try { objectTime = std::filesystem::last_write_time(getBinPath(o)); }
+        catch ( const std::exception&) {}
+
+        if (exeTime <= objectTime) goto needsLinking;
+      }
+
+      continue;
+
+      needsLinking:
+      if (!link_(flags, d, exePath)) return false;
+    }
+  }
+
   return true;
 }
 
@@ -325,7 +535,7 @@ bool all(std::vector<std::string_view> flags) {
 bool all() { return all({}); }
 
 bool main_(int argc, char* argv[]) {
-  if (latest(argv) == RebuildResult::FAILED) return -1;
+  if (latest(argv) == RebuildResult::FAILED) return false;
 
   std::filesystem::current_path("src");
 
