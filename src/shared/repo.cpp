@@ -219,7 +219,7 @@ repo::init(const db::PGconnUR& conn) {
   static constexpr std::string_view LG_NAME{_LG_NS ".init"};
   lg::debug(LG_NAME, "initialising repo");
 
-  std::array<decltype(&prepareGet3Launchers), 2> todo = {
+  std::array todo{
     prepareGetCluster,
     prepareGet3Launchers
   };
