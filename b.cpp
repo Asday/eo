@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstring>
 #include <expected>
 #include <experimental/array>
@@ -287,6 +288,10 @@ std::filesystem::path getExePath(const std::filesystem::path& target) {
   return std::filesystem::path{} / "../.build/bin/" / target.stem();
 }
 
+std::filesystem::path getHeaderPath(std::filesystem::path target) {
+  return target.replace_extension("h");
+}
+
 bool mkdirs(const std::filesystem::path& dest) {
   const auto maybeExitCode{runSync({"mkdir", "-p", dest.parent_path().c_str()})};
   if (maybeExitCode.has_value()) {
@@ -474,7 +479,9 @@ bool buildTargets(
       source = std::move(maybeSource).value();
     }
 
-    auto sourceTime{std::filesystem::last_write_time(source)};
+    // If the source or any of the depended upon headers are newer than
+    // the binary, need to recompile.
+    auto newestDependencyTime{std::filesystem::last_write_time(source)};
     std::filesystem::file_time_type binTime;
     const std::filesystem::path binPath{getBinPath(d.target)};
     try { binTime = std::filesystem::last_write_time(binPath); }
@@ -482,9 +489,17 @@ bool buildTargets(
       binTime = std::filesystem::file_time_type::min();
     }
 
-    if (sourceTime <= binTime) goto alreadyCompiled;
+    for (const auto& o : d.objects) {
+      newestDependencyTime = std::max(
+        newestDependencyTime,
+        std::filesystem::last_write_time(getHeaderPath(o))
+      );
+    }
+
+    if (newestDependencyTime <= binTime) goto alreadyCompiled;
 
     if (!compile(flags, d.target, binPath)) return false;
+    binTime = std::filesystem::last_write_time(binPath);
 
     alreadyCompiled:
     if (exe) {
