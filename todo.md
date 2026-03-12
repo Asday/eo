@@ -9,6 +9,8 @@
     * [x] implement
     * [ ] implement but nicer so the caller doesn't have to care and can use just SQL while calling `db::exec()` which figures out whether it's a `PREPARE`, `EXECUTE`, or otherwise
     * [x] test
+  * [ ] split repo to a file per query
+    * [ ] figure out how `init()` is gonna work
   * [ ] DTLS
   * [ ] packet error detection/correction
     * [x] caboose for incomplete message detection
