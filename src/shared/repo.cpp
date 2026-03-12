@@ -63,6 +63,29 @@ prepareGet3Launchers(const db::PGconnUR& conn) {
   return {};
 }
 
+std::expected<void, std::string>
+prepareUpdateClusterStatus(const db::PGconnUR& conn) {
+  static constexpr std::string_view LG_NAME{
+    _LG_NS ".prepareUpdateClusterStatus"
+  };
+  lg::debug(LG_NAME, "preparing `updateClusterStatus`");
+  auto maybeRes{db::prepare(
+    conn,
+    "updateClusterStatus",
+    "UPDATE cluster\n"
+    "SET status = $2::clusterStatus\n"
+    "WHERE clusterID = $1::int;"
+  )};
+  if (!maybeRes.has_value()) {
+    return std::unexpected((std::stringstream()
+      << "failed to prepare `updateClusterStatus`: "
+      << maybeRes.error()
+    ).str());
+  }
+
+  return {};
+}
+
 static constexpr std::array<
   std::string_view,
   std::to_underlying(repo::ClusterStatus::LAST) + 1
@@ -103,6 +126,35 @@ repo::operator<<(std::ostream& os, const repo::UnexpectedEnumValue& uev) {
   os << '`' << uev.table << "." << uev.column << "`: `" << uev.value << '`';
 
   return os;
+}
+
+std::expected<void, std::string_view>
+repo::updateClusterStatus(
+  const db::PGconnUR& conn,
+  const std::uint8_t clusterID,
+  const repo::ClusterStatus& cs
+) {
+  static constexpr std::string_view LG_NAME{_LG_NS ".updateClusterStatus"};
+  db::PGresultUR res;
+  {
+    auto maybeRes{db::execPrepared(
+      conn,
+      "updateClusterStatus",
+      std::vector<char*>{
+        (std::stringstream() << +clusterID).str().data(),
+        (std::stringstream() << cs).str().data()
+      }
+    )};
+    if (!maybeRes) {
+      return std::unexpected((std::stringstream()
+        << "failed to execute `updateClusterStatus`: "
+        << maybeRes.error()
+      ).view());
+    }
+    res = std::move(maybeRes).value();
+  }
+
+  return {};
 }
 
 std::expected<repo::Cluster, std::variant<
@@ -220,6 +272,7 @@ repo::init(const db::PGconnUR& conn) {
   lg::debug(LG_NAME, "initialising repo");
 
   std::array todo{
+    prepareUpdateClusterStatus,
     prepareGetCluster,
     prepareGet3Launchers
   };

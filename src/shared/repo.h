@@ -52,6 +52,13 @@ namespace repo {
     std::variant<NoLaunchers, Not3Launchers, std::string_view>
   > get3Launchers(const db::PGconnUR& conn);
 
+  std::expected<void, std::string_view>
+  updateClusterStatus(
+    const db::PGconnUR& conn,
+    const std::uint8_t clusterID,
+    const repo::ClusterStatus& cs
+  );
+
   std::expected<void, std::vector<std::string>>
   init(const db::PGconnUR& conn);
 }

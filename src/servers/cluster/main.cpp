@@ -114,6 +114,23 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
+  {
+    auto res{repo::updateClusterStatus(
+      conn,
+      clusterID,
+      repo::ClusterStatus::startup
+    )};
+
+    if (!res) {
+      lg::fatal(LG_NAME, (std::stringstream()
+        << "failed to set cluster status to `startup`: "
+        << res.error()
+      ).view());
+
+      return -1;
+    }
+  }
+
   std::array<sockaddr_in, 3> launchers;
   {
     while (true) {
@@ -158,4 +175,38 @@ int main(int argc, char* argv[]) {
   signal::waitForInterrupt();
 
   lg::info(LG_NAME, "caught SIG{INT,TERM}, shutting down");
+
+  {
+    auto res{repo::updateClusterStatus(
+      conn,
+      clusterID,
+      repo::ClusterStatus::shutdown
+    )};
+
+    if (!res) {
+      lg::fatal(LG_NAME, "failed to set cluster status to `shutdown`");
+
+      return -1;
+    }
+  }
+
+  lg::info(LG_NAME, "shutdown completed, going offline");
+
+  {
+    auto res{repo::updateClusterStatus(
+      conn,
+      clusterID,
+      repo::ClusterStatus::offline
+    )};
+
+    if (!res) {
+      lg::fatal(LG_NAME, "failed to set cluster status to `offline`");
+
+      return -1;
+    }
+  }
+
+  lg::info(LG_NAME, "success");
+
+  return 0;
 }
