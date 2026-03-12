@@ -59,7 +59,15 @@ int main(int argc, char* argv[]) {
   }
 
   lg::info(LG_NAME, "initialising repo");
-  repo::init(conn);
+  {
+    auto maybeSuccess{repo::init(conn)};
+    if (!maybeSuccess) {
+      lg::fatal(LG_NAME, "failed to initialise repo: ");
+      for (const auto& s : maybeSuccess.error()) lg::fatal(LG_NAME, s);
+
+      return -1;
+    }
+  }
 
   lg::info(LG_NAME, "getting cluster details");
   repo::Cluster cluster;
