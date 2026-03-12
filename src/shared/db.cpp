@@ -76,7 +76,7 @@ std::expected<db::PGresultUR, std::string_view> db::exec(
 }
 
 static constexpr std::string_view LG_NAME_PREPARE{_LG_NAME ".prepare"};
-std::expected<void, std::string_view> db::prepare(
+std::expected<void, std::string> db::prepare(
   const db::PGconnUR& c,
   std::string_view name,
   std::string_view sql
@@ -113,7 +113,10 @@ std::expected<void, std::string_view> db::prepare(
     && s != PGRES_SINGLE_TUPLE
     && s != PGRES_COMMAND_OK
   ) {
-    return std::unexpected(PQerrorMessage(c.get()));
+    std::string error{PQerrorMessage(c.get())};
+    lg::debug(LG_NAME_PREPARE, "returning an unexpected");
+    lg::debug(LG_NAME_PREPARE, error);
+    return std::unexpected(error);
   }
 
   return {};

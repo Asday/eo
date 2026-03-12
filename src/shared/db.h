@@ -27,7 +27,7 @@ namespace db {
     std::string_view sql,
     std::vector<char*> params
   );
-  std::expected<void, std::string_view> prepare(
+  std::expected<void, std::string> prepare(
     const PGconnUR&,
     std::string_view name,
     std::string_view sql

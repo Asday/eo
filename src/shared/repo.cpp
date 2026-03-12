@@ -17,7 +17,7 @@
 
 #define _LG_NS "repo"
 
-std::expected<void, std::string_view>
+std::expected<void, std::string>
 prepareGetCluster(const db::PGconnUR& conn) {
   static constexpr std::string_view LG_NAME{_LG_NS ".prepareGetCluster"};
   lg::debug(LG_NAME, "preparing `getCluster`");
@@ -30,13 +30,13 @@ prepareGetCluster(const db::PGconnUR& conn) {
     return std::unexpected((std::stringstream()
       << "failed to prepare `getCluster`: "
       << maybeRes.error()
-    ).view());
+    ).str());
   }
 
   return {};
 }
 
-std::expected<void, std::string_view>
+std::expected<void, std::string>
 prepareGet3Launchers(const db::PGconnUR& conn) {
   static constexpr std::string_view LG_NAME{_LG_NS ".prepareGet3Launchers"};
   lg::debug(LG_NAME, "preparing `get3Launchers`");
@@ -57,7 +57,7 @@ prepareGet3Launchers(const db::PGconnUR& conn) {
     return std::unexpected((std::stringstream()
       << "failed to prepare `get3Launchers`: "
       << maybeRes.error()
-    ).view());
+    ).str());
   }
 
   return {};
@@ -214,7 +214,7 @@ std::expected<
   }
 }
 
-std::expected<void, std::vector<std::string_view>>
+std::expected<void, std::vector<std::string>>
 repo::init(const db::PGconnUR& conn) {
   static constexpr std::string_view LG_NAME{_LG_NS ".init"};
   lg::debug(LG_NAME, "initialising repo");
@@ -223,11 +223,14 @@ repo::init(const db::PGconnUR& conn) {
     prepareGetCluster,
     prepareGet3Launchers
   };
-  std::vector<std::string_view> errors;
+  std::vector<std::string> errors;
   errors.reserve(todo.size());
   for (const auto& fn : todo) {
     auto maybeRes{fn(conn)};
-    if (!maybeRes.has_value()) errors.push_back(maybeRes.error());
+    if (!maybeRes) {
+      errors.emplace_back(maybeRes.error());
+      lg::debug(LG_NAME, maybeRes.error());
+    }
   }
 
   if (errors.size()) return std::unexpected(errors);

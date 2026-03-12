@@ -52,6 +52,6 @@ namespace repo {
     std::variant<NoLaunchers, Not3Launchers, std::string_view>
   > get3Launchers(const db::PGconnUR& conn);
 
-  std::expected<void, std::vector<std::string_view>>
+  std::expected<void, std::vector<std::string>>
   init(const db::PGconnUR& conn);
 }
